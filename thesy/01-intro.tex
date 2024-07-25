@@ -114,7 +114,7 @@ Previous research effort has revealed that testing-based discovery is sensitive 
 For example, QuickSpec, which is based on QuickCheck (as are all the existing testing-based theory exploration methods), employs a heuristic to restrict the set of types allowed in terms in order to make the checker's job easier.
 Compound data types such as lists can be nested up to two levels (lists of lists, but not lists of lists of lists).
 This presents an obstacle towards scaling the approach to real software libraries, since ``\textit{QuickCheck's size control
-interacts badly with deeply nested types} [...] \textit{will generate extremely large test data.}''~\cite{JFP2017:Smallbone}
+interacts badly with deeply nested types} [...] \textit{will generate extremely large test data.}''~\cite{JFP2017:Smallbonequickspec2}
 
 Following are two example scenarios that attempt to represent cases from software systems where structured data types and complicated APIs exist:
 (i)~A series of tree data-types $T_i$ where each $T_i$ is a tree of height i with i children of type $T_{i-1}$, and the base case is an empty tree.

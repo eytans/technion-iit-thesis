@@ -30,7 +30,7 @@ The better known but opposed approach is the common SMT solver approach (Barrett
 \end{comment}
 
 We compare \TheSy to the most recent and closely related theory exploration system, Hipster~\cite{hipster}---which is
-based on random testing (backed by QuickSpec~\cite{JFP2017:Smallbone}) with proof automations from and frontend in Isabelle/HOL~\cite{Book2002:Nipkow}.
+based on random testing (backed by QuickSpec~\cite{JFP2017:Smallbonequickspec2}) with proof automations from and frontend in Isabelle/HOL~\cite{Book2002:Nipkow}.
 Hipster represents the culmination of several works on existing theory exploration (see~\autoref{thesy:related}).
 Both systems generate a set of proved lemmas as output, each such set encompassing a conceptual volume of knowledge that was discovered automatically.
 We note that the same knowledge can be represented in various ways, so directly comparing the sets of lemmas is going to be meaningless.
@@ -82,7 +82,7 @@ To evaluate our approach and its implementation, we run both \TheSy and Hipster
 on functional definitions collected from the TIP 2015 benchmark suite~\cite{CICM2015:Claessen}, specifically the IsaPlanner~\cite{ITP2010:Johansson} benchmarks (85 benchmarks in total), for compatibility between the two systems.
 TIP benchmarks also contain goal propositions, but for the purpose of evaluating the exploration technique, these are redacted.
 %We compare the results of running \TheSy against those exhibited by Hipster,
-%a theory exploration based on random testing (backed by QuickSpec~\cite{JFP2017:Smallbone}) with a frontend for Isabelle/HOL~\cite{Book2002:Nipkow}.
+%a theory exploration based on random testing (backed by QuickSpec~\cite{JFP2017:Smallbonequickspec2}) with a frontend for Isabelle/HOL~\cite{Book2002:Nipkow}.
 %To compare the outputs, we use the notion of knowledge described in \autoref{technical}:
 %Given two theories $\mathcal{T}_1, \mathcal{T}_2$, we check every lemma $\varphi\in\mathcal{T}_1$ against $\mathcal{T}_2$, and vice versa;
 This experiment uses the simple rewrite-driven congruence-closure decision procedure with a case split mechanism in the role of the solver, $S$, occurring in the definition of knowledge $\mathcal{K}$.

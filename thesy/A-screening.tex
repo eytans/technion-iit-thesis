@@ -93,7 +93,7 @@ some equalities will fail to be detected --- with a tradeoff between precision a
 The general approach taken both here and in \cite{ICAD2013:Claessen} is to enumerate through all terms, and, by evaluating them, find sets of equal terms.
 From these sets, equality conjectures are derived and passed to a theorem prover for verification.
 
-Previous work~\cite{JFP2017:Smallbone} addressed this by applying random testing with concrete values %\ES{IsaCoSy used counter example generation to do this so less relevant}.
+Previous work~\cite{JFP2017:Smallbonequickspec2} addressed this by applying random testing with concrete values %\ES{IsaCoSy used counter example generation to do this so less relevant}.
 This requires value generators for each type $\Type$ of free variables occurring in the terms being compared, and an execution environment for $\Lang$.
 A generator for type $\Type$ is a function $\mathcal{F}_\Type$ generating a random distribution $\mathcal{X}_\Type$ of values from the domain of $\Type$. 
 Given that all the relevant $\mathcal{G}_\Type$ are present and they created a sufficient cover of the space of input values, the correct equivalence classes will be found by using Observational Equivalence \cite{CAV2103:Albarghouthi}. %\ES{They talk about observational equivalence in quickspec. is it not enough?}.%
@@ -106,7 +106,7 @@ random testing, it will be hard to distinguish \texttt{strstr} from string equal
 The problem is exacerbated when free variables may take function types, such as is the case when
 higher-order functions such as $\textrm{filter}$ are present in the vocabulary.
 
-Therefore, while the random testing approach has been applied successfully before \cite{JFP2017:Smallbone,ICAD2013:Claessen,hipstercond,ITP2017:Johansson,2018AISC:Einarsdottir}, it is useful to consider a different approach. 
+Therefore, while the random testing approach has been applied successfully before \cite{JFP2017:Smallbonequickspec2,ICAD2013:Claessen,hipstercond,ITP2017:Johansson,2018AISC:Einarsdottir}, it is useful to consider a different approach. 
 This work proposes to overcome these issues using a symbolic evaluation method based on term rewriting.
 Using semantics-preserving rewrite rules allows to infer that terms are equal without having to
 substitute concrete values for the free variables, eliminating the need for random generators.
