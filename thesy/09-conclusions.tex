@@ -1,0 +1,33 @@
+\section{Conclusion}
+\label{thesy:conclusions}
+
+We described a new method for theory exploration, which differentiates itself from existing work by basing the reasoning on a novel engine based on term rewriting.
+The new approach differs from previous work, specifically those based on testing techniques, in that:
+\vspace{-.25em}
+\begin{enumerate}
+    \item This lightweight reasoning is purely symbolic, supporting value abstraction and performs better then prior art.
+    \item Functions are naturally treated as first-class objects, without specific support implementation.
+    \item The only needed input is the code defining the functions involved, and no support code such as a specific theory solver or random value generators.
+    \item \TheSy has a unique feedback loop between the prover and the synthesizer, allowing more conjectures to be found and proofs to succeed.
+\end{enumerate}
+\vspace{-.25em}
+
+By creating a feedback loop between the four different phases, term generation, conjecture inference, conjecture screening and induction prover, this system manages to efficiently explore many theories.
+This goes beyond similar feedback loops in existing tools, aiming to reduce false and duplicate conjectures.
+As explained in \autoref{overview:conjecture}, this form is also present in \TheSy, but \TheSy utilizes this feedback in more phases of the computation.
+
+Theory exploration carries practical significance to many automated reasoning tasks,
+especially in formal methods, verification and optimization.
+ Complex properties lead to an ever-growing number of definitions and associated lemmas, which constitute an integral part of proof construction.
+These lemmas can be used for SMT solving, automated and interactive theorem proving, and as a basis for equivalence reduction in enumerative synthesis.
+The term rewriting-based method that we presented in this paper is simple, highly flexible, and has already shown results surpassing existing exploration methods.
+%it is even competitive with state-of-the-art provers based on SMT technology.
+The generated lemmas allow even this simple method to prove conjectures that normally require sophisticated SMT extensions.
+Our main conclusion is that deductive techniques and symbolic evaluation can greatly contribute to theory exploration, in addition to their existing applications in invariant and auxiliary conjecture inference.
+
+\subsubsection*{Acknowledgements.}
+\label{sec:conclusion}
+
+This research was supported by the Israeli Science Foundation (ISF) Grants No.~243/19 and
+2740/19 and by the United States-Israel Binational Science Foundation (BSF) Grant
+No.~2018675.

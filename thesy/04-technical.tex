@@ -1,0 +1,441 @@
+\section{Theory Synthesis}
+\label{thesy:technical}
+
+In this section, we go into a more detailed description of the phases of theory synthesis and explain how they are combined within an iterative deepening loop.
+To simplify the presentation, we describe all the phases first, then explain how
+the output from the last phase is fed back to the next iteration to complete a
+feedback loop.
+We continue with the input from the running example in \autoref{thesy:overview} (\autoref{overview:input-state}) and dive deeper by showing intermediate states encountered during the execution of \TheSy on this input.
+Throughout the execution, \TheSy maintains a state, consisting of the following elements:
+\begin{itemize}
+  \item $\Vocab$, a sorted vocabulary 
+  \item $\Constr\subseteq\Vocab$, a subset of constructors for some or all of the types
+  \item $\Eqs$, a set of equations initially consisting only of the
+    definitions of the (non-constructor) functions in $\Vocab$
+  \item $\Terms$, a set of terms, initially containing just atomic terms corresponding to symbols from $\Vocab$.
+\end{itemize}
+
+
+\subsection{Term Generation}
+\label{overview:term-generation}
+
+The first step is to generate a set of terms over the vocabulary $\Vocab$.
+For the purpose of generating universally-quantified conjectures, we introduce a set of uninterpreted symbols, which we will call \emph{placeholders}.
+Let $\Types$ be the set of types occurring as the type of some argument of a function symbol in $\Vocab$.
+For each type $\tau$ occurring in $\Vocab$ we generate placeholders $\pholder{i}{\tau~}$, two for each type (we will explain later why two are enough).
+These placeholders, together with all the symbols in $\Vocab$, constitute the terms at depth $0$.
+
+\begin{comment}
+\ES{This explanation can be done in two steps. Create terms as sygus would, then replace uninterpreted values with symbolic examples}
+The first thing the synthesizer does is generate \emph{symbolic values} used to discriminate different terms.
+There are two kinds of symbolic values at play, \emph{uninterpreted constants} (sometimes called \emph{symbolic constants}) and \emph{symbolic expressions}.
+For all types, uninterpreted constants are generated to represent arbitrary, opaque values inhabiting them.
+For symbolic expressions, we will make a distinction between types.
+Types whose constructors are in $\Constr$, we will call \emph{open} types, and the rest, we will call \emph{closed} types.
+For open types, symbolic expressions are constructed by composing the constructors up to depth $c$.
+Each symbolic expression is therefore an expression containing a mixture of symbols from $\Constr$ and (typed) uninterpreted constants.
+
+In the running example, only the type family $\tlist~T$ is open.
+Type variables are not instantiated, which leaves the types $T$ and
+$T\to\tbool$ as closed types (in principle, also $\tbool$ itself, but since
+it does not occur in any function argument position it does not contribute
+to the synthesis space). Let $e_1, e_2$ be symbolic constants of type $T$,
+$l_1, l_2$ of type $\tlist~T$, and $p_1, p_2$ of type $T\to\tbool$.
+In addition to those, additional symbolic constants of type $T$ $v_1, v_2$ are created; to be used solely in the symbolic expressions $\textrm{[]}$, $v_1\cons\textrm{[]}$, and $v_2\cons v_1 \cons \textrm{[]}$ which are also generated.
+\end{comment}
+
+At every iteration of deepening, \TheSy uses the set of terms generated so far, and the (non-nullary) symbols of $\Vocab$, to form new terms by placing existing ones in argument positions.
+For example, with the definitions from \autoref{overview:input-state},
+we will have terms such as these at depths 1 and 2:
+\bgroup
+\renewcommand\arraystretch{1.4}
+\arrayrulecolor{black!25}
+\begin{equation}\label{overview:example-terms}
+\begin{array}{l@{\qquad}c@{\qquad}c@{\qquad}}
+  {\scriptstyle 1} &
+  \tfilter\,\pholder{1}{\!T\!\to\tbool}~\pholder{1}{\tlist\,T} &
+  \pholder{1}{\tlist\,T} \concat \pholder{2}{\tlist\,T}
+\\ \hline
+  {\scriptstyle 2} &
+  \lnil ~\concat~
+  \tfilter\,\pholder{1}{\!T\!\to\tbool}~\pholder{1}{\tlist\,T} &
+  \pholder{1}{\tlist\,T} \concat 
+    ~(\tfilter\,\pholder{1}{\!T\!\to\tbool}~\pholder{2}{\tlist\,T})
+\\
+  & 
+  \tfilter\,\pholder{1}{\!T\!\to\tbool}~
+    (\pholder{1}{\tlist\,T} \concat \pholder{2}{\tlist\,T})  &
+  (\tfilter\,\pholder{1}{\!T\!\to\tbool}~\pholder{1}{\tlist\,T})
+    ~\concat ~
+    (\tfilter\,\pholder{1}{\!T\!\to\tbool}~\pholder{2}{\tlist\,T})
+\end{array}
+\end{equation}
+\egroup
+
+It is easy to see that 
+$\clrterm\tfilter\pholder{1}{\!T\!\to\tbool}\pholder{1}{\tlist\,T}$ and $\clrterm\lnil \concat
+  \tfilter\pholder{1}{\!T\!\to\tbool}\pholder{1}{\tlist\,T}$
+are equivalent in any context; this follows directly from the definition of $\concat$, available as part of $\Eqs$. 
+It is therefore acceptable to discard one of them without affecting completeness.
+\TheSy does not discard terms---since they are merged in the e-graph, there is no need to---rather, it chooses the smaller term as representative when it needs one.
+This sort of \emph{equivalence reduction} is present, in some way or another, in many automated reasoning and synthesis tools.
+
+%\SI{I am not sure the introduction of SyGuE is well-motivated any more (which is a pity).}
+To formalize the procedure of generating and comparing the terms,
+in an attempt to discover new equality conjectures,
+we introduce the concept of \emph{Syntax Guided Enumeration} (SyGuE).
+SyGuE is similar to Syntax Guided Synthesis (SyGuS for short~\cite{DSSE2015:Alur}) in that they both use a formal definition of a language to find program terms solving a problem.
+They differ in the problem definition: while SyGuS is defined as a search for a correct program over the well-formed programs in the language,
+SyGuE is the sub-problem of iterating over \emph{all distinct} programs in the language.
+SyGuS solvers may be improved using a smart search algorithm, while SyGuE solvers need an efficient way to eliminate duplicate terms, which may depend on the definition of program equivalence.
+We implement our variant of SyGuE, over the equivalence relation $\TRewriteSysRelationTiny{\!}{\!\!}$, using the aforementioned e-graph:
+by applying and re-applying rewrite rules,
+provably equivalent terms are naturally \emph{merged} into hyper-vertices, representing equivalence classes.
+
+\subsection{Conjecture Inference \& Screening}
+\label{overview:conjecture}
+
+Of course, in order to discover \emph{new} conjectures,
+we cannot rely solely on term rewriting based on $\Eqs$.
+To find more equivalent terms, \TheSy carries on to generate a second set of terms, called \emph{symbolic examples},
+this time using only the constructors $\Constr \subset \Vocab$
+and uninterpreted symbols for leaves.
+This set is denoted $\Symexes{\tau}$, where $\tau$ is an algebraic datatype participating in $\Vocab$
+(if several such datatypes are present, one $\Symexes{\tau}$ per type is constructed).
+The depth of the symbolic examples (i.e. depth of applied constructors) is also bounded, but it is independent of the current term depth and does not increase during execution.
+For example, using the constructors of $\tlist~T$ with an example depth of $2$,
+we obtain the symbolic examples 
+$\Symexes{\tlist\,T\!} = \{
+  {\clrsymex\lnil}, {\clrsymex v_1{\cons}\lnil}, 
+  {\clrsymex v_2{\cons} v_1{\cons}\lnil}\}$, 
+corresponding to lists of length up to $2$ having arbitrary element values.
+Intuitively, if two terms are equivalent for all possible assignments of symbolic examples to $\pholder{i}{\tlist\,T}$,
+then we are going \emph{hypothesize} that they are equivalent for all
+list values.
+This process is very similar to observational equivalence as used by program
+synthesis tools~\cite{CAV2103:Albarghouthi,Notices2013:Udupa}, but since it uses the symbolic value terms instead of concrete
+values, we dub it \emph{symbolic observational equivalence} (SOE).
+
+%\SI{@todo put in the description of rewrites and merges from full version}
+
+\medskip
+Consider, for example, the simple terms $\clrterm\pholder{1}{\tlist\,T}$
+and $\clrterm\pholder{1}{\tlist\,T}\!\concat\lnil$.
+In placeholder form, none of the rewrite rules derived from $\Eqs$ applies, so it cannot be determined that these terms are, in fact, equivalent.
+However, with the symbolic list examples above, the following rewrites are enabled:
+\[
+\TRewriteSysRelation
+{\clrterm{\clrsymex\lnil}\concat\lnil}{\clrsymex\lnil}   \hspace{1.5em} 
+\TRewriteSysRelation
+{\clrterm{\clrsymex v_1{\cons}{\lnil}}\concat\lnil}
+  {\clrsymex v_1{\cons}{\lnil}}
+ \hspace{1.5em}
+\TRewriteSysRelation
+{\clrterm{\clrsymex v_2{\cons} v_1{\cons}\lnil}\concat\lnil}
+  {\clrsymex v_2{\cons} v_1{\cons}\lnil}
+\]
+
+A similar case can be made for the two bottom terms in \eqref{overview:example-terms}.
+For symbolic values $l_1,l_2\in\Symexes{\tlist\,T\!}$,
+it can be shown that
+\[
+\TRewriteSysRelation
+  {\clrterm\tfilter\pholder{1}{T\!\to\tbool}({\clrsymex l_1} 
+    \concat\, {\clrsymex l_2})\,}
+  {\clrterm{(\tfilter\pholder{1}{T\!\to\tbool}{\clrsymex l_1})} 
+    \concat {(\tfilter\pholder{1}{T\!\to\tbool}{\clrsymex l_2})}}
+\]
+
+In fact, it is sufficient to substitute for $\pholder{1}{\tlist\,T}$, while \emph{leaving} $\pholder{2}{\tlist\,T}$ \emph{alone, uninterpreted}:
+e.g., 
+$
+\TRewriteSysRelation
+  {\clrterm\tfilter\pholder{1}{T\!\to\tbool}({\clrsymex\lnil}
+    \concat \pholder{2}{\tlist\,T})}
+  {\clrterm{(\tfilter\pholder{1}{T\!\to\tbool}{\clrsymex\lnil})}
+    \concat 
+    {(\tfilter\pholder{1}{T\!\to\tbool}\pholder{2}{\tlist\,T})}}
+$.
+This reduces the number of equivalence checks significantly,
+and is more than a mere heuristic:
+since we are going to rely on a prover that proceeds by applying induction to one of the arguments, it makes perfect sense to only bound that argument.
+If computation is blocked on the second argument, we would prefer to first infer an auxiliary lemma first, then use it to discover the blocked lemma later.
+See \autoref{overview:lemma-seeding} below for an idea of when this situation arises.
+
+The attentive reader may notice that the cases of
+$\clrsymex v_1{\cons}\lnil$ and
+$\clrsymex v_2{\cons}v_1{\cons}\lnil$
+are a bit more involved:
+to proceed with the rewrite of $\clrterm\tfilter$, the expressions
+$\clrterm\pholder{1}{T\!\to\tbool}\,v_{\scriptscriptstyle 1}$,
+$\clrterm\pholder{1}{T\!\to\tbool}\,v_{\scriptscriptstyle 2}$
+must be resolved to either $\ttrue$ or $\tfalse$.
+However, the predicate $\pholder{1}{T\!\to\tbool}$ as well as the arguments $v_{\scriptscriptstyle 1,2}$ are uninterpreted.
+In this case, \TheSy is required to perform a \emph{case split} in order to enable the rewrites and unify the symbolic terms separately in each of the resulting four ({\small $2^2$}) cases.
+Notice that leaving $\pholder{1}{T\!\to\tbool}$ uninterpreted means that the cases are only split when evaluation is blocked by one or more rewrite rule applications, potentially saving some branching.
+The following steps are then carried out for each case.
+
+\TheSy applies all the available rewrite rules to the entire e-graph, containing all the terms and symbolic examples.
+For every two terms $t_1,t_2$ such that for all viable substitutions $\sigma$ of placeholders to symbolic examples of the corresponding types, $t_1\sigma$ and $t_2\sigma$ were shown equal---that is, ended up in the same equivalence class of the e-graph---the conjecture $t_1\maybeEqTiny t_2$ is emitted. \Eg, in the case of the running example:
+
+\[
+{\clrterm
+  \tfilter\pholder{1}{T\!\to\tbool}(
+    \pholder{1}{\tlist\,T} \concat 
+    \pholder{2}{\tlist\,T})}
+~\maybeEq~
+{\clrterm
+  {(\tfilter\pholder{1}{T\!\to\tbool}
+    \pholder{1}{\tlist\,T})}
+    \,\concat\,
+  {(\tfilter\pholder{1}{T\!\to\tbool}
+    \pholder{2}{\tlist\,T})}}
+\]
+
+In the presence of multiple cases, the results are intersected, so that a conjecture is emitted only if it follows from all the cases.
+
+\begin{comment}  % redundant?
+The two terms on the top row will not be merged. This is because,
+for example, for the valuation $\big\{
+    \pholder{1}{\tlist\,T}\mapsto[], 
+    \pholder{2}{\tlist\,T}\mapsto l_1,
+    \pholder{2}{T~}\mapsto v_1
+\big\}$,
+The left one expands to $[]$ whereas the right expands to $l_1$.
+\end{comment}
+
+\begin{paragraph}{\bf Screening.}
+Generating all the pairs according to the above criteria potentially creates many ``obvious'' equalities, which are valid propositions, but do not contribute to the overall knowledge and just clutter the prover's state.
+For example,
+\[
+{\clrterm
+\tfilter\pholder{1}{T\!\to\tbool}
+ ({\pholder{1}{\tlist\,T}} \concat\, {\pholder{2}{\tlist\,T}})} ~\maybeEq~
+{\clrterm
+\tfilter\pholder{1}{T\!\to\tbool}
+  \big(\,{\pholder{1}{\tlist\,T}} \concat\,
+  {(\lnil \concat {\pholder{2}{\tlist\,T}})}\big)}
+\]
+which follows from the definition of ${\concat}$ and has nothing to do with
+$\clrterm\tfilter$. 
+The synthesizer avoids generating such candidates, by
+choosing at most one term from every equivalence class
+of placeholder-form terms induced during the term generation phase.
+If both sides of the equality conjecture belong to the same equivalence class, the conjecture is dropped altogether.
+\end{paragraph}
+
+The conjectures that remain are those equalities $t_1\maybeEqTiny t_2$ where $t_1$ and $t_2$ got merged for all the assignments $\Symexes{\tau}$ to some $\pholder{1}{\tau~\,}$, and, furthermore, $t_1$ and $t_2$ themselves \emph{were not} merged in placeholder form,
+prior to substitution.
+Such conjectures, if true, are guaranteed to increase the knowledge represented by $\Eqs$ as (at least) the equality $t_1=t_2$ was not previously provable using term rewriting and congruence closure.
+
+\subsection{Induction Prover}
+\label{overview:induction}
+
+For practical reasons, the prover employs the following induction tactic:
+\begin{itemize}
+  \item \emph{Structural} induction based on the provided 
+    constructors ($\Constr$).
+  \item The \emph{first} placeholder of the inductive type is selected as the decreasing argument.
+   \item Exactly \emph{one} level of induction is attempted for each candidate.
+\end{itemize}
+
+The reasoning behind this design choice is that for every multi-variable
+term, \emph{e.g.} $\clrterm\pholder{1}{\tlist\,T} \concat \pholder{2}{\tlist\,T}$,
+the synthesizer also generates the symmetric counterpart
+$\clrterm\pholder{2}{\tlist\,T} \concat \pholder{1}{\tlist\,T}$.
+So electing to perform induction on $\pholder{1}{\tlist\,T}$ does not impede
+generality.
+
+In addition, if more than one level of induction is needed, the proof can
+(almost) always be revised by factoring out the inner induction as an auxiliary lemma.
+Since the synthesizer produces \emph{all} candidate equalities, that inner
+lemma will also be discovered and proved with one level of induction.
+Lemmas so proven are added to $\Eqs$ and are available to the prover, so that
+multiple passes over the candidates can gradually grow the set of provable equalities.
+
+When starting a proof, the prover never needs to look at the base case,
+as this case has already been checked during conjecture inference.
+Recall that placeholders $\pholder{1}{\tau~}$ are instantiated with bounded-depth expressions using the constructors of $\tau$,
+and these include all base cases (non-recursive constructors) by default.
+For the example discussed above, the case of
+${\clrterm\tfilter\pholder{1}{T\!\to\tbool}({\clrsymex\lnil}
+    \concat \pholder{2}{\tlist\,T})}
+=    
+  {\clrterm{(\tfilter\pholder{1}{T\!\to\tbool}  
+  {\clrsymex\lnil})}
+    \,\concat\,
+    {(\tfilter\pholder{1}{T\!\to\tbool}\pholder{2}{\tlist\,T})}}$
+has been discharged early on, otherwise the conjecture would not have come to pass.
+The prover then turns to the induction step, which is pretty routine but
+is included in \autoref{overview:induction-example} for completeness of the presentation.
+\begin{figure}[t]
+\renewcommand\arraystretch{1.3}
+\newcommand\ih{~~~~(\textit{IH}\,)}
+\[
+\begin{array}{l@{\quad}l}
+\textit{Assume} & 
+\tfilter~p~(\mathit{xs} \concat l_1) =
+ \tfilter~p~\mathit{xs} \concat \tfilter~p~l_1
+ \\
+\textit{Prove} &
+ \tfilter~p~((x \cons \mathit{xs}) \concat l_1) =
+ \tfilter~p~(x \cons \mathit{xs}) \concat \tfilter~p~l_1
+\\
+\textit{via} & (1)~~ \tfilter~p~((x \cons \mathrm{xs}) \concat l_1) 
+                 = \tfilter~p~(x \cons (\mathrm{xs} \concat l_1)) \\
+             & (2)~~ \qquad = \tmatch~(p\,x)~\twith~
+                \begin{array}[t]{@{}l@{}}
+                  \ttrue\Rightarrow 
+                       x\cons\tfilter~p~(\textit{xs} \concat l_1) \\
+                  \tfalse\Rightarrow 
+                              \tfilter~p~(\textit{xs} \concat l_1)
+                \end{array} \\
+    \ih      & (3)~~ \qquad = \tmatch~(p\,x)~\twith~
+                \begin{array}[t]{@{}l@{}}
+                  \ttrue\Rightarrow 
+                       x\cons {(\tfilter~p~\mathit{xs} \concat 
+                                \tfilter~p~l_1)} \\
+                  \tfalse\Rightarrow 
+                              \tfilter~p~\mathit{xs} \concat 
+                                \tfilter~p~l_1 
+                \end{array} \\
+             & (4)~~\tfilter~p~(x \cons \mathit{xs}) \concat 
+                    \tfilter~p~l_1 \\
+             & \hspace{1.3cm} = \big(\tmatch~(p\,x)~\twith~
+                \begin{array}[t]{@{}l@{}}
+                  \ttrue\Rightarrow 
+                       x\cons \tfilter~p~\mathit{xs} \\
+                  \tfalse\Rightarrow  \tfilter~p~\mathit{xs}\big)
+                      \concat \tfilter~p~l_1
+                \end{array} \\
+             & (5)~~ \qquad = \tmatch~(p\,x)~\twith~
+                \begin{array}[t]{@{}l@{}}
+                  \ttrue\Rightarrow 
+                       x\cons {(\tfilter~p~\mathit{xs} \concat 
+                                \tfilter~p~l_1)} \\
+                  \tfalse\Rightarrow 
+                              \tfilter~p~\mathit{xs} \concat 
+                                \tfilter~p~l_1 
+                \end{array} \\[-1.5em]
+\square &
+\end{array}
+\]
+\vspace{-5mm}
+\caption{Example proof by induction based on congruence closure and
+  case splitting.}
+  \label{overview:induction-example}
+\end{figure}
+
+It is worth noting that the conjecture inference, screening and induction phases
+utilize a common reasoning core based on rewriting and congruence closure.
+In situations where the definitions include conditions such as
+$\clrterm\tmatch~p\,x$ in \autoref{overview:induction-example} (in this case, desugared from $\clrterm\tif~p\,x$), the prover also performs automatic case split
+and distributes equalities over the branches.
+Details and specific optimizations are described in \autoref{thesy:evaluation}.
+
+\begin{paragraph}{Speculative generalization.}
+When the prover receives a conjecture with multiple occurrences of a placeholder, \textit{e.g.}
+${\clrterm {\pholder{1}{\tlist\,T}} \concat 
+   {(\pholder{2}{\tlist\,T} \concat \pholder{1}{\tlist\,T})}}
+~\maybeEq~
+ {\clrterm {({{\pholder{1}{\tlist\,T}} \concat 
+   {\pholder{2}{\tlist\,T}})} \concat \pholder{1}{\tlist\,T}}}$,
+it is designed to first speculate a more general form for it by replacing the multiple occurrences with fresh placeholders.
+Recall that in \autoref{overview:term-generation} we argued that two placeholders of each type is going to be sufficient;
+this is the mechanism that enables it.
+There is more than one way to generalize a given conjecture: for this example, there are two ways (up to alpha-renaming):
+\[
+{\clrterm {\pholder{1}{\tlist\,T}} \concat 
+   {(\pholder{2}{\tlist\,T} \concat {\clrhi\pholder{3}{\tlist\,T}})}}
+\maybeEq
+ {\clrterm {({{\pholder{1}{\tlist\,T}} \concat 
+   {\pholder{2}{\tlist\,T}})} \concat {\clrhi\pholder{3}{\tlist\,T}}}}
+\hspace{2em}
+{\clrterm {\pholder{1}{\tlist\,T}} \concat 
+   {(\pholder{2}{\tlist\,T} \concat {\clrhi\pholder{3}{\tlist\,T}})}}
+\maybeEq
+ {\clrterm {({{\clrhi\pholder{3}{\tlist\,T}} \concat 
+   {\pholder{2}{\tlist\,T}})} \concat \pholder{1}{\tlist\,T}}}
+\]
+The prover must attempt both. Failing that, it would fall back to the original conjecture.
+Formally, given an equality conjecture $\clrterm{s = t}$ we can consider an assignment $\sigma$ such that $\clrterm{ r = s\sigma, q = t\sigma}$;
+where the original conjecture uses an assignment with only two values per type.
+The prover thus must iterate through different assignments $\sigma_i$ with more possible values per type, and attempt to prove a new conjecture $\clrterm{r\sigma_i = q\sigma_i}$.
+This incurs more work for the prover but is well worth its cost compared to a-priori generation of terms with three placeholders. 
+\end{paragraph}
+
+\subsection{Looping Back}
+
+The equations obtained from \autoref{overview:induction} are fed back in
+four different but interrelated ways.
+The first, inner feedback loop is from the induction prover to itself:
+the system will attempt to prove the smaller lemmas first, so that when
+proving the larger ones, these will already be available as part of $\Eqs$.
+This enables more proofs to go through.
+The second feedback loop uses the lemmas obtained to filter out proofs that are no longer needed.
+The third, outer loop is more interesting: as equalities are made into
+rewrite rules, additional equations may now pass the inference phase,
+since the symbolic evaluation core can equate more terms based on this
+additional knowledge.
+The fourth resonates with the third, applying the new rewrite rules acts as an equality reduction mechanism, reducing the number of hyperedges added to the e-graph during term generation.
+
+It is worth noting that while concrete observational equivalence uses
+a trivially simple equivalence checking mechanism with the trade-off
+that it may generate many incorrect equalities,
+our \emph{symbolic} observational equivalence is conservative in the
+sense that a symbolic value may represent infinitely many concrete
+inputs, and only if the synthesizer can \emph{prove} that two terms will
+evaluate to equal values on \emph{all} of them, by way of constructing
+a small proof, are they marked as equivalent.
+This means that some actually-equivalent terms may be ``blocked'' by
+the inference phase, which cannot happen when using concrete values---%
+but also means that having additional inference rules ($\Eqs$) can improve this equivalence checking, 
+potentially leading to more discovered lemmas.
+This property of \TheSy is appealing because it allows an explored theory to evolve from basic lemmas to more complex ones.
+
+\begin{example}[Lemma seeding]\label{overview:lemma-seeding}
+To understand this last point, consider the standard definition of list reversal for the $\tlist$ datatype:
+\[
+\begin{array}{rcl}
+  \trev~\lnil & = & \lnil \\
+  \trev~(x\cons xs) & = & \trev~xs \concat {(x\cons\lnil)}
+\end{array}
+\]
+
+Given the terms $t_1 = {\clrterm \trev~({\pholder{1}{\tlist\,T}} \concat {\pholder{2}{\tlist\,T}})}$
+and $t_2 = {\clrterm {\trev{\pholder{2}{\tlist\,T}}} \,\concat\, {\trev{\pholder{1}{\tlist\,T}}}}$,
+symbolic observational equivalence with the assignments
+$\{\pholder{1}{\tlist\,T} \mapsto \Symexes{\tlist\,T}\}$
+fails to unify them.
+This is due to $\concat$ being defined by induction on its first argument,
+hence, \textit{e.g.}---
+\[
+\begin{array}{l@{\quad}c@{\quad}l}
+ {\clrterm\trev~({\clrsymex v_2\cons v_1\cons\lnil}
+   \concat \pholder{2}{\tlist\,T})} & \to^* &
+ {\clrterm\big(\trev\pholder{2}{\tlist\,T} \concat 
+   {(v_1\cons\lnil)}\big) \concat {(v_2\cons\lnil)}} \\
+ {\clrterm {\trev~{\pholder{2}{\tlist\,T}}} \concat\,
+  {\trev~{\clrsymex v_2\cons v_1\cons\lnil}}} & \to^* &
+ {\clrterm\trev\pholder{2}{\tlist\,T} \concat 
+   {(v_1\cons v_2\cons\lnil)}}
+\end{array}
+\]
+
+Without the associativity property of $\concat$, it would not be possible to show that these symbolic values are equivalent, so the conjecture
+$t_1\maybeEqTiny t_2$ will not even be generated.
+Luckily, having proven
+${\clrterm {\pholder{1}{\tlist\,T}} \concat 
+   {(\pholder{2}{\tlist\,T} \concat \pholder{3}{\tlist\,T})}}
+~\maybeEq~
+ {\clrterm {({{\pholder{1}{\tlist\,T}} \concat 
+   {\pholder{2}{\tlist\,T}})} \concat \pholder{3}{\tlist\,T}}}$,
+these rewrites are ``unblocked'', so that the equality can be conjectured and ultimately proven.
+\end{example}
+
+One caveat is that whenever $\Eqs$ is updated by the addition of a new lemma, some of the previously emitted conjectures may consequently become redundant.
+Moreover, conjectures that were passed to the prover before but failed validation may now succeed, and new ones may be emitted in the generation phase.
+To take these into account, the actual loop performed by \TheSy is a bit more involved than has been described so far.
+For each term depth, \TheSy performs all phases as described, but each time a lemma is discovered \TheSy re-runs the conjecture generation, screening, and prover phases.
+Only when no more conjectures are available does \TheSy increase the term depth and generate new terms.
+%Pseudo-code for the full algorithm is given in .... \ES{dont miss this}

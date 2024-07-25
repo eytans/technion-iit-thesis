@@ -1,0 +1,36 @@
+%\newcommand\smaller{\fontsize{7pt}{7pt}\selectfont}
+
+\begin{tikzpicture}
+  \pgfplotsset{cactus/.style={
+  		width=5cm,
+        height=4cm,
+        title style={yshift=-1pt,anchor=base},
+        ytick distance=10^1,
+        x tick label style={font={\smaller}},
+        y tick label style={font=\tiny},
+        ymajorgrids=true,
+        %xlabel={benchmarks solved},
+           mark size=.25pt}}
+
+  \begin{axis}[title={clam}, cactus, ymode=log]
+    \addplot[smooth,mark=*,green!50!gray] plot 
+      table[y=time] {thesy/img/cvc4-benchmarks/cactus-clam.dat.txt};
+  \end{axis}
+
+  \begin{axis}[title={hipspec}, at={(5cm,0)}, cactus, ymode=log]
+    \addplot[smooth,mark=*,green!50!gray] plot 
+      table[y=time] {thesy/img/cvc4-benchmarks/cactus-hipspec.dat.txt};
+  \end{axis}
+
+  \begin{axis}[title={leon}, at={(0,-3.5cm)}, cactus, ymode=log]
+    \addplot[smooth,mark=*,green!50!gray] plot 
+      table[y=time] {thesy/img/cvc4-benchmarks/cactus-leon.dat.txt};
+  \end{axis}
+
+  \begin{axis}[title={isaplanner}, at={(5cm,-3.5cm)}, cactus, ymode=log]
+    \addplot[smooth,mark=*,green!50!gray] plot 
+      table[y=time] {thesy/img/cvc4-benchmarks/cactus-isaplanner.dat.txt};
+  \end{axis}
+
+
+\end{tikzpicture}

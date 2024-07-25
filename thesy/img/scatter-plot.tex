@@ -1,0 +1,69 @@
+\newcommand\tthesy{\textrm{T}}
+\newcommand\thipster{\textrm{H}}
+
+\newcommand\fwith{w\hspace{-1pt}/\hspace{-1pt}\xspace}
+\newcommand\fwithout{w\hspace{-1pt}/\hspace{-1pt}o\xspace}
+
+
+\begin{tikzpicture}
+\coordinate (O) at (0,0);
+\begin{axis}[
+    title={\TheSy {\smaller~(\fwithout case split)} \vs Hipster},
+    at=(O),
+    %enlargelimits=false,
+    draw={black!30!white},
+    width=5.5cm, height=5.5cm,
+    grid=both,
+    xmin=0, xmax=1,
+    ymin=0, ymax=1,
+    ticklabel style={font=\tiny},
+    x label style={at={(axis description cs:0.5,-0.07)},anchor=north},
+    y label style={at={(axis description cs:-0.1,.5)},rotate=-90,anchor=east},
+    xlabel={$\mathcal{T}_{\thipster} \cmptheories
+             \mathcal{T}_{\tthesy}$},
+    ylabel={$\mathcal{T}_{\tthesy} \cmptheories
+             \mathcal{T}_{\thipster}$}
+]
+\addplot[  
+    only marks,
+    scatter,
+    scatter src=y-x,
+    point meta min=-.6, point meta max=1,
+    mark size=1.25pt]
+table[x=t<h,y=h<t]{thesy/img/scatter-plot-no-cs.dat.txt};
+\end{axis}
+%
+\draw[color=olive!60!white] (O) -- +(4cm, 4cm);
+
+% ----------------------------------
+
+\coordinate (O) at (6.3cm,0);
+\begin{axis}[
+    title={\TheSy {\smaller~(\fwith case split)} \vs Hipster},
+    at=(O),
+    %enlargelimits=false,
+    draw={black!30!white},
+    width=5.5cm, height=5.5cm,
+    grid=both,
+    xmin=0, xmax=1,
+    ymin=0, ymax=1,
+    ticklabel style={font=\tiny},
+    x label style={at={(axis description cs:0.5,-0.07)},anchor=north},
+    y label style={at={(axis description cs:-0.1,.5)},rotate=-90,anchor=east},
+    xlabel={$\mathcal{T}_{\thipster} \cmptheories
+             \mathcal{T}_{\tthesy}$},
+    ylabel={$\mathcal{T}_{\tthesy} \cmptheories
+             \mathcal{T}_{\thipster}$}
+]
+\addplot[  
+    only marks,
+    scatter,
+    scatter src=y-x,
+    point meta min=-.5, point meta max=1,
+    mark size=1.25pt]
+table[x=t<h,y=h<t]{thesy/img/scatter-plot-with-cs.dat.txt};
+\end{axis}
+%
+\draw[color=olive!60!white] (O) -- +(4cm, 4cm);
+%
+\end{tikzpicture}

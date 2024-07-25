@@ -1,0 +1,48 @@
+\section{Background}
+\label{lweqsat:background}
+
+Proof assistants usually consist of two basic layers: a \emph{kernel} is responsible for checking proofs, and some user facing scripting language, commonly called a \emph{tactic language} that is used to ease and streamline the construction of proof objects that are passed to the kernel for checking.
+This split is conducive to the evolution of proof assistants, because the tactics can be developed more flexibly, without worrying about proof soundness.
+The kernel alone forms the TCB (trusted code base) that is assumed correct.
+
+Two of the most commonly used proof assistants today, Coq and Lean \ES{cite}, are based on Type Theory, thus reducing the problem of proof checking to one of \emph{type checking}.
+They employ similar flavors of the Calculus of Inductive Constructions (CIC), which is a typed pure lambda calculus with polymorphism and, importantly, dependent types.
+In such calculi, types are first-class expressions, and 
+type checking relies heavily on syntactic unification of terms.
+To offer some automatic assistance, terms are reduced to a \emph{normal form} and then compared.
+The normalization relies on the set of reductions that are part of the calculus (the most basic ones being $\beta$-reduction and $\eta$-reduction),
+as well as on definitions of basic mathematical concepts that are used (such as arithmetic operators like $+$ and $\cdot\,$).
+
+%(modulo $\beta$-equivalence).
+%Terms that are not syntactically identical but are nevertheless semantically equivalent, such as $x\cdot 5$ and $5\cdot x$, require manual application of the tactic language to show equality.
+
+\subsection{Hammer Systems}
+
+Hammer systems have emerged as powerful tools for automating proof discovery in ITPs. These systems typically combine premise selection, translation to first-order logic, and proof reconstruction. Notable examples include Sledgehammer for Isabelle/HOL \cite{sledgehammer}, HOLyHammer for HOL Light \cite{holyhammer}, and CoqHammer for Coq \cite{coqhammer}. These systems have demonstrated significant success in automatically proving a substantial portion of theorems in their respective libraries.
+
+\subsection{Translations to First-Order Logic}
+
+A key component of hammer systems is the translation of higher-order or dependently typed logics to first-order logic. This translation enables the use of highly optimized automated theorem provers (ATPs) that operate on first-order logic. Significant work in this area includes:
+
+\begin{itemize}
+    \item Czajka's shallow embedding of pure type systems into first-order logic \cite{czajka2018shallow}, which provides a foundation for translating dependently typed systems.
+    \item Meng and Paulson's technique for translating higher-order clauses to first-order clauses \cite{meng2008translating}, which has been influential in the development of hammer systems for higher-order logic.
+\end{itemize}
+
+These translations face the challenge of balancing completeness, soundness, and practical efficiency.
+
+\subsection{Automation in Dependently Typed Systems}
+
+Dependently typed proof assistants like Coq and Lean have their own built-in automation tactics. Coq provides tactics such as \texttt{auto}, \texttt{eauto}, and \texttt{firstorder} \cite{Coq:manual}, which perform limited proof search. Lean offers a powerful tactic framework that allows users to write custom automation \cite{lean}.
+
+Integration with SMT solvers has also been explored, as exemplified by Armand et al's work \cite{armand2011modular}, which integrates SMT solvers into Coq's by using proof witnesses, as opposed to hammers which attempt to reconstruct proofs using deductions.
+
+\subsection{Premise Selection}
+
+Efficient premise selection is crucial for the performance of hammer systems, especially when dealing with large formal libraries. Recent advancements in this area include the use of machine learning techniques. For instance, \ES{TODO}.
+
+\subsection{Equality Saturation}
+
+Equality saturation, implemented efficiently using e-graphs, has shown promise in program optimization and equivalence reasoning \cite{egg}. This technique allows for a more flexible exploration of the equality relation, potentially offering advantages in proof search and simplification.
+
+Our work builds upon these foundations, aiming to develop a lightweight equality saturation approach for Coq that balances automation power with logical soundness and efficiency.

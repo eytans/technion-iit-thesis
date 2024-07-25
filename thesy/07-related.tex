@@ -1,0 +1,81 @@
+\section{Related Work}
+\label{thesy:related}
+
+\begin{paragraph}{Equality Graphs}~
+Originally brought into use for automated theorem proving~\cite{JACM2005:Detlefs},
+e-graphs were popularized as a mechanism for implementing low-level compiler
+optimizations~\cite{POPL2009:Tate}, under the name \emph{PEGs}.
+These e-graphs can be used to represent a large
+program space compactly by packing together equivalent programs.
+In that sense they are similar to Version Space 
+Algebras~\cite{ML2003:Programming}, but their prime objective is entirely
+different.
+While VSAs focus on efficient intersections, e-graphs are used to saturate a
+space of expressions with all equality relations that can be inferred.
+They have found use in optimizing expressions for more than just speed,
+for example to increase numerical stability of floating-point programs
+in Herbie~\cite{herbie}.
+There are two key differences in the way e-graphs are used in this work compared
+to prior:
+(i) equality laws are not hard-coded nor fixed, they are fertilized
+as the system proves more lemmas automatically;
+(ii) saturation cannot be guaranteed or even obtained in all cases, which we overcome by a bound on rewrite-rule application depth.
+(The latter point is an indirect consequence of the former.)
+\end{paragraph}
+
+\begin{paragraph}{Automated theorem provers}~
+Many systems rely on known theorems or are designed to support users in semi-automated proving.
+Congruence closure is also a proven method for tautology checking in
+automated theorem provers, such as Vampire~\cite{vampire},
+and is used as a decision procedure for reasoning about equality in leading SMT solvers
+Z3~\cite{z3} and CVC4~\cite{cvc4}.
+There, it is limited mostly to first-order reasoning, but can essentially
+be applied unchanged to higher-level scenarios such as ours.
+
+Related to theory exploration, but using separate techniques,
+are Zipperposition~\cite{FroCoS2017:Cruanes}, and the conjecture generation mechanism implemented as part of
+the induction prover in CVC4~\cite{cvc4induction}.
+It should be noted, that these are directed toward a specific proof goal, as opposed to theory exploration, which is presumed to be an offline phase.
+As such, the above two techniques incorporate generation of inductive hypotheses into the saturation proof search / SMT procedure, respectively.
+\end{paragraph}
+
+\begin{paragraph}{Theory exploration}~
+IsaCoSy~\cite{JAR2010:Johansson} pioneered the use of synthesis techniques for bottom-up lemma discovery.
+IsaCoSy combines equivalence reduction with coun\-ter\-ex\-ample-guided inductive synthesis 
+(CEGIS~\cite{ASPLOS2006/Solar-Lezama}) for filtering candidate lemmas.
+This requires a solver capable of generating counterexamples to equivalence.
+Subsequent development was based on random generation of test values, as implemented in QuickSpec~%
+\cite{JFP2017:Smallbone} for reasoning about Haskell programs, later combined with automated provers
+for checking the generated conjectures~\cite{ICAD2013:Claessen,ITP2017:Johansson}.
+We have mentioned the deficiencies of using concrete values (as opposed to symbolic ones) and random testing in \autoref{thesy:intro} and 
+make an empirical comparison with Hipster, a descendent of IsaCoSy and QuickSpec, in \autoref{thesy:evaluation}.
+%The need for automatic lemma discovery and proof is rising.
+%First as helping users \cite{MathAid}, focus on probable lemmas, later on
+%as automatic tools for building background knowledge for a domain %\cite{IsacoSy, Isascheme, hipspec, hipster}
+%In his survey on Lemma discovery~\cite{ICICM2019:Johansson}, Johansson 
+%/ HipSter and Into the Infinite for Haskell and Isabelle/HOL;
+\end{paragraph}
+
+\begin{paragraph}{Inductive synthesis}~
+In the area of SyGuS~\cite{DSSE2015:Alur}, tractable bottom-up enumeration is commonly achieved
+by some form of equivalence reduction~\cite{VMCAI2019:Smith}.
+When dealing with concrete input-output examples, observational equivalence~%
+\cite{CAV2103:Albarghouthi,Notices2013:Udupa} is very effective.
+The use of symbolic examples in synthesis has been suggested~\cite{CAV2017:Drachsler}, but
+to the best of our knowledge, ours is the only setting where symbolic observational equivalence
+has been applied.
+Inductive synthesis, in combination with abduction~\cite{STTT2017:Dillig},
+has also been used to infer specifications~\cite{POPL2016:Albarghouthi},
+although not as an exploration method but as a supporting mechanism for verification. 
+\end{paragraph}
+
+\begin{comment}
+\begin{paragraph}{Rule-based knowledge}~
+Software tools occasionally encode domain knowledge as a set of rewrite rules. 
+The Haskell compiler GHC uses such rules when
+performing optimizations such as Stream Fusion~\cite{SIGPLAN-Notices2007:Coutts}.
+Term rewriting is also used in symbolic execution, to simplify the representation of symbolic states~\cite{FMCAD2008:Sinha}.
+Typically, these rules are hand crafted.
+This is a time-consuming and error-prone process, which catalyzes the interest of the programming languages community in automatic generation of them~\cite{arXiv2020:Murali}.
+\end{paragraph}
+\end{comment}

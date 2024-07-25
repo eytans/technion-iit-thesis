@@ -1,0 +1,50 @@
+\section{Introduction}
+
+Proof assistants have become increasingly important tools in formalization of mathematics, formal verification, and program analysis. 
+The have become indispensable in tasks such as verification of complex systems, that require a high level of expressivity \cite{bedrock, compcert}.
+However, their usability depends on an expert user being able to select the appropriate proof steps within the interactive environment.
+Users can take advantage of automation features provided by the proof assistant, but this requires a higher level of skill~\cite{qedatlarge}.
+
+Researchers recently had substantial success in using automated theorem proving (ATP) as a component in interactive theorem provers (ITPs, often referred to as proof assistants).
+An ATP can be a useful automatic one click solution to the vast amount of effort put into verifying software using ITPs \cite{qedatlarge,compcert,bedrock}.
+However, ATPs usually reason over first order logic (FOL), and proof assistants use a more expressive high order logic (HOL), requiring an encoding of the proof assistants environment into FOL.
+This is usually done by tools called \emph{hammers}, and for the ATPs to be effective, requires facts (axioms and lemmas) selection mechanism, as too many axioms will often make the proof search diverge \cite{coqhammer, hammeringqed, sledgehammer}.
+
+Despite their effectiveness in certain scenarios, hammers present significant limitations in terms of interactivity within proof assistants.
+A key issue that when a hammer fails to prove a theorem, it offers no insights into why the proof attempt was unsuccessful or how the user might proceed. 
+This lack of intermediate feedback is particularly problematic in interactive theorem proving environments, where users often require guidance to refine their proof strategies or identify missing lemmas.
+This limitation restricts the ability of expert users to effectively guide the proof process in complex scenarios where automated methods alone are insufficient.
+
+\begin{comment}
+This chapter introduces an approach dubbed Lightweight Equality Saturation (LES) for proof assistants, which aims to apply equality saturation to a reduced form of the available theory, thus maintaining computational efficiency required for an interactive setting.
+By selectively applying saturation techniques to critical subterms and leveraging domain-specific heuristics, LES offers a promising framework for enhancing the capabilities of proof assistants without incurring prohibitive performance costs.
+\end{comment}
+
+This chapter introduces an approach called Lightweight Equality Saturation (LES) for proof assistants, which aims to somewhat bridge the gap between automated theorem proving and interactive proof environments. 
+LES leverages the power of equality saturation \cite{eqsat}, a technique to effectively reason about equality of terms, through an the ITPs hammer mechanisms.
+Equality saturation operates by repeatedly, and simultaneously, applying rewrite rules on top of an e-graph \cite{egg}, a data structure that compactly represents equivalence classes of expressions. 
+By employing a smart encoding to an e-graph and carefully constructed rewrite rules, LES achieves a balance between speed and effectiveness as a prover.
+
+A key advantage of the LES approach is its ability to potentially provide meaningful feedback even when it fails to prove a theorem completely. 
+In such cases, LES can attempt to offer a simplified sub-goal that, if proven, would enable the proof of the full goal. 
+This can significantly enhances the interactive experience, allowing users to make incremental progress and gain insights into the proof structure. 
+It's important to note that an eqsat-based prover like LES has inherent limitations: it struggles with existential quantification and lacks built-in mechanisms for case splitting or induction. 
+However, these limitations are well-suited to the ITP scenario, where a rich ecosystem of existing lemmas often already addresses case reasoning or induction steps.
+To ensure successful application and maintain efficiency, the LES translation process incorporates several crucial optimizations. 
+Given that e-graphs are sensitive to size due to the exponential nature of e-matching (the basis for rewriting in equality saturation), the translation carefully avoids introducing unnecessary terms into the e-graph. 
+Furthermore, LES implements special refinements for handling equality, if-and-only-if statements, and propositions, making it particularly well-suited for pure type systems commonly used in proof assistants.
+But, to keep the prover fast, no attempts to deal with existentials or conditionals are made.
+Still, the prover manages to go toe-to-toe with state of the art theorem provers, and improve CoqHammer's overall results.
+
+The main contributions of this work are threefold. 
+\begin{enumerate}
+    \item We present LES, a novel implementation of Lightweight Equality Saturation for Coq.
+    \item We introduce a tool that leverages Coq-LSP, a language server protocol meant to replace \cite{serapi} to facilitate the easy creation of benchmarks. 
+    This tool significantly streamlines the process of generating and managing test cases for any coq tactic, enabling more comprehensive and efficient evaluation of proof automation techniques.
+    \item We provide an evaluation of LES on the MathComp coq library, comparing its performance against existing automated reasoning tools, cvc4 \cite{cvc4}, vampire \cite{vampire}, z3 \cite{z3}, and the E prover \cite{eprover}, and assessing its impact on CoqHammer \cite{coqhammer}. 
+    This evaluation demonstrates the effectiveness of our approach. Also an ablation study is done to asses the effectiveness of a critical encoding design choice on the effectiveness of the LES prover.
+\end{enumerate}  
+
+% Even when solvable by tactics, requires experts
+% This is expensive because assholes like Eytan ask for big salaries
+% Automatic tools that will allow non-experts to handle this french piece of shit, often fail, and provide no help

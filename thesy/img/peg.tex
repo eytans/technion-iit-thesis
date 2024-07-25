@@ -1,0 +1,40 @@
+\begin{tikzpicture}[>=latex,cp/.style={draw,circle},
+        nuc/.style={inner sep=0, outer sep=0},
+        ly/.style={black!45!white}]
+    \node(u1)[cp] {};
+    \node(u2)[cp, below=6mm of u1] {};
+    \node(u3)[cp, below=6mm of u2] {};
+    \node(p)[left=6mm of u1] {};
+    \node(l1)[left=6mm of u2] {};
+    \node(l2)[left=6mm of u3] {};
+    \draw[->] (p) -- node[above] {$p$} (u1);
+    \draw[->] (l1) -- node[above] {$l_1$} (u2);
+    \draw[->] (l2) -- node[above] {$l_2$} (u3);
+    \node(e1)[nuc, right=6mm of u2, yshift=-4.5mm] {};
+    \node(u4)[cp, right=8mm of e1] {};
+    \draw[->] (u2) -- (e1.center) -- (u4);
+    \draw (u3) -- (e1.center);
+    \node[above right=0 of e1, inner sep=2pt] {$\concat$};
+    \node(e2)[nuc, right=6mm of u4, yshift=9mm] {};
+    \node(u5)[cp, right=8mm of e2] {};
+    \draw[->] (u1) -- (e2.center) -- (u5);
+    \draw (u4) -- (e2.center);
+    \node[above=0 of e2, inner sep=4pt] {filter};
+    \node[right=0 of u5] {$u_0$};
+    
+    \node(e3)[nuc, right=of u1, yshift=9mm] {};
+    \node(u6)[cp, ly, right=of e3] {};
+    \draw[ly,->] (u1) -- (e3.center) -- (u6);
+    \draw[ly] (u2) -- (e3.center);
+    \node[above right=0 of e3, inner sep=2pt, ly] {filter};
+    \node(e4)[nuc, below=6mm of e3] {};
+    \node(u7)[cp, ly, right=of e4] {};
+    \draw[ly,->] (u1) -- (e4.center) -- (u7);
+    \draw[ly] (u3) -- (e4.center);
+    \node[above right=0 of e4, inner sep=2pt, ly] {filter};
+    \node(e5)[nuc, right=3mm of u7] {};
+    \draw[ly,->] (u6) -- (e5.center) -- (u5);
+    \draw[ly] (u7) -- (e5.center);
+    \node[right=0 of e5, inner sep=2pt, ly] {$\concat$};
+    
+\end{tikzpicture}

@@ -1,0 +1,139 @@
+\section{Overview}
+\label{thesy:overview}
+
+
+Our theory exploration method, named \TheSy (Theory Synthesizer, pronounced \emph{Tessy}), is based on syntax-guided enumerative synthesis.
+Similarly to previous approaches \cite{JFP2017:Smallbone,ICAD2013:Claessen,ITP2017:Johansson}, TheSy generates a comprehensive set of
+terms from the given vocabulary and looks for pairs that seem equivalent.
+Notably, \TheSy employs deductive reasoning based on term rewriting systems to propose these pairs
+by extrapolating from a set of known equalities, employing a relatively lightweight (but unsound) reasoning procedure.
+The proposed pairs are passed as equality conjectures to a theorem prover capable of reasoning by induction.
+
+\begin{figure}[t]
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}[>=latex, stage/.style={inner xsep=5pt, inner ysep=9pt}, coupled/.style={draw=black!40!white, dotted, thick}, node distance=7mm]
+    \node(term-gen)[stage, draw, align=center]
+        { Term \\ Generation \\ (SyGuE) };
+    \node(infer)[stage, draw, align=center, right=of term-gen]
+        { Conjecture \\ Inference \\ (SOE) };
+    \node(screen)[stage, draw, align=center, right=of infer]
+        { Conjecture \\ Screening \\ ~ };
+    \node(induction)[stage, draw, align=center, right=of screen]
+        { Induction \\ Prover \\ {\small(cong. closure)}};
+        
+    \node(infer+screen)[coupled, fit=(infer) (screen)] {};
+        
+    \draw[->] (term-gen) -- (infer);
+    \draw[->] (infer) -- (screen);
+    \draw[->] (screen) -- (induction);
+    \draw[->] (induction.east) -- ++(.4,0) -- ++(0,1.25)
+              -| node[above,pos=.25] {\small iterative deepening} (term-gen);
+    \draw[->] (induction.south) -- ++(0,-.25)
+             -| node[below, pos=.25] {\small augment knowledge} 
+             coordinate[pos=.25](midpoint) (term-gen);
+    \draw[->] (midpoint -| infer) -- (infer);
+    \draw[->] (midpoint -| screen) -- (screen);
+    \draw[<-] (term-gen.west) -- ++(-5mm,0)
+        node[anchor=east, align=center, inner sep=0, xshift=3mm, yshift=-2mm] { \small base \\ \small knowledge };
+    \draw[->] (induction.east) -- ++(7mm,0)
+        node[anchor=west, align=center, inner sep=1pt, xshift=-3mm, yshift=-2mm] { \small new \\ \small knowledge };
+\end{tikzpicture}
+}
+\caption{\TheSy system overview: breakdown into phases, with feedback loop.}
+\label{overview:sys-flow}
+\end{figure}
+
+The process (as shown in \autoref{overview:sys-flow}) is separated into four stages.
+These stages work in an iterative deepening fashion and are dependent on the results of each other. A short description is given to help the reader understand their context later on.
+\begin{enumerate}[leftmargin=1.2em]
+    \item \textbf{Term Generation.~} Build symbolic terms of increasing depth, based on the given vocabulary.
+    Use known equalities for pruning via equivalence reduction.
+    \item \textbf{Conjecture Inference.~} Evaluate terms on symbolic inputs, and apply deductive inference to extract new equalities, thus forming conjectures.
+    \item \textbf{Conjecture Screening.~} Some of the conjectures, even valid ones, are special cases of known equalities or are trivially implied by them. We deem these conjectures redundant.
+    TheSy culls such conjectures before continuing to prove the rest.
+    \item \textbf{Induction Prover.~} The prover attempts to prove conjectures that passed screening using a normal induction scheme derived from algebraic data structure definitions in the given vocabulary.
+    Conjectures that were successfully proven are then declared \emph{lemmas} and added to the known equalities.
+\end{enumerate}
+
+
+The phases are run iteratively in a loop, where each iteration deepens the generated terms and, hence, the discovered lemmas.
+These lemmas are fed back to earlier phases;
+this form of feedback contributes to discovering more lemmas thanks to several factors:
+\begin{enumerate}[label=(\roman*), align=left, labelsep=0pt,labelwidth=2em]
+\item Conjecture inference is dependent upon known equalities. Additional equalities enable finding new conjectures.
+\item Accurate screening by merging equivalence classes based on known equalities. 
+\item The prover is based on known equalities with a congruence closure procedure. 
+The more lemmas are known to the system, the more lemmas become provable by this method.
+\item Term generation benefits from the equivalence reduction, avoiding duplicate work for equivalent terms. 
+\end{enumerate}
+
+
+\begin{figure}[t]
+\[
+\begin{array}{rll}
+  \Vocab & = & \{ \begin{array}[t]{l@{\quad}l}
+         \lnil       & \tlist~T, \\
+         {\cons}     & T \to \tlist~T \to \tlist~T, \\
+         {\concat}   & \tlist~T \to \tlist~T \to \tlist~T,  \\
+         \tfilter & (T\to\tbool)\to\tlist~T\to\tlist~T~\}
+         \end{array}
+          
+  \hspace{3em}
+  \Constr ~=~ \{~\lnil, {\cons}~\} \\
+%       \\[-7pt]
+%        k       & = & 2 \\
+%        c       & = & 2
+         \\
+  \Eqs    & = & \{\begin{array}[t]{l@{\quad}ll}
+          \lnil \concat l = l, &
+          (x\cons xs)\concat l = x\cons(xs\concat l), \\
+          \tfilter~p~\lnil = \lnil,& 
+          \tfilter~p~(x\cons xs) = \tif~p\,x~
+          	\tthen~x\cons\tfilter~p~xs~
+            \telse~\tfilter~p~xs &\}
+          \end{array}
+\end{array}
+\]
+\caption{An example input to \TheSy.}
+\label{overview:input-state}
+\end{figure}
+
+\begin{paragraph}{Running example.}
+To illustrate \TheSy's theory exploration procedure,
+we introduce a simple running example based on a list ADT. The input given to \TheSy is shown in \autoref{overview:input-state};
+it consists of a vocabulary $\Vocab$ (of which $\Constr$ is a subset of ADT constructors) and a set of known equalities $\Eqs$.
+The vocabulary $\Vocab$ contains the canonical list constructors $\clratom\lnil$ and $\clratom\cons$, and two basic list operations $\clratom\concat$ (concatenate) and $\clratom\tfilter$.
+The equalities $\Eqs$ consist of the definitions of the latter two.
+\end{paragraph}
+
+% TheSy crash course
+\medskip
+At a very high level, the following process is about to take place:
+\TheSy generates symbolic terms representing length-bound lists, \textit{e.g.}, $\clrsymex\lnil$, $\clrsymex[v_1]$, $\clrsymex[v_2,v_1]$.
+Then, it will evaluate all combinations of function applications, up to a small depth, using these symbolic terms as arguments.
+If these evaluations yield common values for all possible assignments, the two application terms yielding them are conjectured to be equal.
+Since the evaluated expressions contain symbolic values, their result is a symbolic value. 
+Comparing such symbolic values is done via congruence closure-based reasoning; we call this process \emph{symbolic observational equivalence}, by way of analogy to observational equivalence~\cite{CAV2103:Albarghouthi} that is carried out using concrete values.
+
+Out of the conjectures computed using symbolic observational equivalence, \TheSy selects minimal ones according to a combined metric of compactness and generality.
+These are passed to a prover that employs both congruence closure and induction to verify the correction of the lemmas for \emph{all} possible list values.
+
+Some lemmas that \TheSy can discover this way are:
+\[
+\renewcommand\arraystretch{1.2}
+\begin{array}{c}
+\tfilter~p~(\tfilter~p~l) = \tfilter~p~l
+ \hspace{1.5cm}
+l_1 \,{\concat}\, (l_2 \,{\concat}~ l_3) = (l_1 \,{\concat}~ l_2) \,{\concat}\, l_3 \\
+\tfilter~p~l_1 \concat \,\tfilter~p~l_2 =
+\tfilter~p~(l_1{\concat}\,l_2)
+\end{array}
+\]
+
+As briefly mentioned, our system design relies on congruence closure-based reasoning over universally quantified first-order formulas with uninterpreted functions.
+Congruence closure is weak but fast and constitutes one of the core procedures in SMT solvers~\cite{JACM1980:Nelson,IC2007:Nieuwenhuis}.
+On top of that, universally-quantified assumptions~\cite{TACAS2017:Barbosa} are handled by formulating them as rewrite rules and applying some depth-bounded term rewriting as described in \autoref{prelim:term-rewriting}.
+Additionally, \TheSy implements a simple case splitting mechanism that enables reasoning on conditional expressions.
+Notably, this procedure \emph{cannot} reason about recursive definitions since such reasoning routinely requires the use of induction.
+To that end, \TheSy is geared towards discovering lemmas that can be proven by induction; a lemma is considered useful if it cannot be proven from existing lemmas by congruence closure alone, that is, without induction.
+Discovering such lemmas and adding them to the background knowledge evidently increases the reasoning power of the prover, since at least the fact of their own validity becomes provable, which it was not before.

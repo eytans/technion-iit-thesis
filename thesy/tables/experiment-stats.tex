@@ -1,0 +1,37 @@
+\begin{tabular}{|l|r|r|rr|rrr|}
+\hline
+          & \multicolumn{4}{c|}{Time (\textit{sec})}                           & \multicolumn{3}{c|}{Lemmas} \\
+          &  Generation  &             & \multicolumn{2}{c|}{Induction Prover} & & &        \\
+$\Vocab$  &  + Inference &   Filtering & \hspace{1cm}  & {\small(retries)}     & found\!\! & failed\!\! & retried\!\!    \\ \hline
+$0~\tsucc~+$                                  &         30.89  &        92.74     &            3     &         0.00     &      5 &     0 &      0  \\
+\hline
+$[]~\cons~\concat~\snoc$                      &       2692.57  &       293.33     &           <1     &         0.00     &      4 &     0 &      0  \\
+\hline
+$\trev~\cons~\snoc$                           &         13.01  &         2.27     &           <1     &         0.09     &      2 &     1 &      1  \\
+\hline
+$\trev~\snoc~\concat~\cons$                   &       1444.45  &        10.68     &           <1     &         0.10     &      3 &     1 &      1  \\
+\hline
+$\tfilter$                                    &          1.34  &         1.12     &           <1     &         0.00     &      2 &     0 &      0  \\
+\hline
+$\tfilter~\concat$                            &         30.20  &         5.04     &            1     &         0.00     &      2 &     8 &      0  \\
+\hline
+$0~\tsum~\tfold~+$                            &        445.00  &       188.28     &            1     &         0.30     &      4 &     2 &      1  \\
+                                              &         (26.32)  &        (12.80)     &            (3)     &         (0.33)     &        &     (2) &      (1)  \\
+\hline
+$\ttrue~\tforall~\land~\tfold$                &        501.94  &       169.13     &            3     &         1.07     &      4 &     3 &      2  \\
+                                              &         (15.02)  &        (12.31)     &            (1)     &         (0.92)     &        &     (3) &      (2)  \\
+\hline
+$\tfalse~\texists~\lor~\tfold$                &        517.29  &       231.81     &            2     &         0.34     &      4 &     2 &      1  \\
+                                              &         (30.57)  &        (27.26)     &            (3)     &         (1.19)     &        &     (3) &      (2)  \\
+\hline
+$\tmap~\circ$                                 &          3.66  &         0.87     &           <1     &         0.00     &      1 &     0 &      0  \\
+\hline
+$0~1~+~\trev~:+~\tlen$                        &        162.44  &        34.61     &           48     &        41.64     &     10 &     2 &      1  \\
+\hline
+$+~\concat~\tlen$                             &         39.66  &         5.15     &           <1     &         0.00     &      1 &     0 &      0  \\
+\hline
+ $\trev~\tswitch~\ttreeflat~\ttreemap~\tid$    &          7.76  &         1.54     &            1     &         0.00     &      3 &     0 &      0  \\
+\hline
+$\tmap~\cons~\snoc~\concat~\tfold~\trev$      &      15020.65  &        33.70     &            2     &         0.94     &      7 &     3 &      3  \\
+\hline
+\end{tabular}

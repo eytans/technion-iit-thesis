@@ -1,0 +1,141 @@
+\section{Functional Description}
+\label{colors:functional}
+
+We now introduce some notations and definitions that formalize
+the description of the e-graph presented in \autoref{colors:overview}.
+We assume a term language $L$ where terms are constructed using \emph{function symbols}, each with its designated arity.
+We use $f^{(r)}\in\Sigma[L]$ to say that $f$ is
+in the \emph{signature} of $L$ and has arity $r$.
+A term is then a \emph{tree} whose nodes are labeled by function symbols and a node labeled by $f$ has $r$ children.
+(In particular, the leaves of a term have nullary function symbols.)
+Additionally we use the following definitions:
+%
+\[
+\renewcommand\arraystretch{1.2}
+\begin{array}{ll}
+  \mbox{e-class ids} & E  \\
+  \mbox{e-nodes}  & N = \{f(e_1,..,e_r)~|~ f^r\in\Sigma, e_i\in E\} \\
+  \mbox{union-find} & {\eqid} \subseteq E\times E, \quad \mbox{${\eqid}$ is an equivalence relation} \\
+  \mbox{e-class map} & M : E \to \mathcal{P}(N) \\
+  \mbox{parent map}  & P = \{e \mapsto \{ (n, e') ~|~ e' \in E~\land \\
+  & \quad n \in M(e') \land n = f(\ldots, e, \ldots) \} ~|~ e \in E \} \\
+  \mbox{hashcons} & H = \{n\mapsto e ~|~ n\in M(e)\} \\
+\end{array}
+\]
+
+Semantically, every e-class represents a set of terms over $\Sigma$.
+We will use the notation $[t]$ to refer to e-class id of the equality class that represents (among other terms), the term $t$.
+
+The union-find structure offers an operation, $\tfind(e)$, that returns a unique representative id of the equivalence class (of $\eqid$) that contains $e$.
+That is, $\tfind(e) \eqid e$ and for all $e_1 \eqid e_2$, $\tfind(e_1) = \tfind(e_2)$.
+
+On top of these basic structures, we introduce a set of \emph{colors}. 
+As explained in \autoref{colors:overview}, colors are organized in a tree whose root is the initial color (``black'').
+We mark the root color $\croot$
+and assign to every non-root color $c$ a \emph{parent color} $p(c)$.
+%
+\begin{comment}
+\[
+\begin{array}{ll@{~~~}l}
+\mbox{color tree} & C = \{\croot, \ldots\}
+& p : C \setminus \{\croot\} \to C
+\end{array}
+\]
+\end{comment}
+\[
+\renewcommand\arraystretch{1.2}
+\begin{array}{ll}
+  \mbox{colors} & C = \{\croot, \ldots\}  \\
+  \mbox{parent colors} & p : C \setminus \{\croot\} \to C
+\end{array}\hspace{2cm}
+\]
+
+\smallskip
+The colored e-graph will now hold multiple union-find structures, one per color.
+They define a family of equivalence relations $\equiv_{c}$ by induction
+on the path from $\croot$ to $c$.
+
+\begin{itemize}
+    \item ${\equiv_{\varnothing}} = {\eqid}$~;\quad $\tfind_{\varnothing}(e) = \tfind(e)$
+    \item ${\equiv_c} \subseteq E_{p(c)}\times E_{p(c)}$, where
+      $E_{p(c)}=\{\tfind_{p(c)}(e)~|~e\in E\}$ is the set of all representatives from $\equiv_{p(c)}$. $\tfind_c\hspace{-0.5pt}(e)$ for $e\in E_{p(c)}$ returns a unique identifier in the normal manner of union-find, \ie, $\tfind_c\hspace{-0.5pt}(e) \equiv_c e$  and for all $e_1 \equiv_c e_2$, $\tfind_c\hspace{-0.5pt}(e_1) = \tfind_c\hspace{-0.5pt}(e_2)$.
+\end{itemize}
+
+
+\begin{comment}
+Formalize the colored-rebuild algorithm
+This should include an algorithmic description of normal rebuild
+Then we would use functions to use the same algorithm for colored rebuild.
+The main concerns that change are:
+1. Collecting all the parents
+2. Updating the memo
+\end{comment}
+
+The definitions over $E_{p(c)}$ are naturally extended to $E$ by (recursive) application of $\tfind$; i.e., $\tfind_c(e) = \tfind_c(\tfind_{p(c)}(e))$
+and $e_1 \equiv_c e_2 \Leftrightarrow \tfind_{p(c)}(e_1) \equiv_c \tfind_{p(c)}(e_2)$.
+Thus it holds, by construction, that
+${\equiv_{c}} \supseteq {\equiv_{p(c)}}$.
+
+The colored e-graph also supports a $\tmerge_c(e_1, e_2)$ operation for each color $c$ where $e_1, e_2 \in E_c$.
+The merge operation may break the congruence relation invariants for $c$ and all its descendants, and thus needs to be fixed.
+The merged classes are added to $\mathit{worklist}(c')$ for all $c'$ where $c'$ is $c$ or one of its descendant.
+In egg~\cite{egg}, the invariants are restored periodically by performing a \textsc{rebuild} pass.
+To accommodate the colors, we adjust the
+\textsc{rebuild} logic to a multi-congruence-relation setting,
+so that it restores a congruence closure for each color during \textsc{rebuild}.
+The main difference is that for a colored congruence relation, the procedure will collect the parents of a colored e-class by combining the sets of parents of all the (root) e-classes contained therein.
+
+\begin{comment}
+We update the auxiliary function \textsc{repair}
+to work on colored e-classes,
+and introduce two new helper functions: $\textsc{collect\_parents}$ and $\textsc{update\_hashcons}$, as presented in \autoref{functional:repair}.
+$\textsc{collect\_parents}$ extract the parents of a colored e-class by combining the sets of parents of all the (root) e-classes contained therein.
+$\textsc{update\_hashcons}$ is used to make sure that the hashcons entries are in canonical forms. It was already a part of \textsc{repair} in egg;
+it is only repeated here to point out that it
+only updates the hashcons for the root color,
+since no canonization is required for colored layers.    
+\end{comment}
+
+Another important colored e-graph operation is e-matching.
+Colored e-matching is a modification of the e-matching abstract machine presented in \cite{DBLP:conf/cade/MouraB07}.
+E-matching is performed by an abstract machine $M$ which consists of a program counter, array of registers $reg$, and backtracking stack $bs$, in combination with a sequence of instructions that represents a pattern $p$. 
+The machine will run instructions by order, where each may either fail if its assertion is not met, or produce a set of continuation states.
+If a continuation state is produced, the machine selects the first one and adds the current instruction to the stack. 
+If no continuation state is produced, the machine backtracks, retrieving the most recent state from the stack and attempting the next available continuation.
+
+To better present our modifications in colored egg, we first shortly introduce some of the original instruction types:
+\begin{itemize}[leftmargin=1.1em]
+    %\item $\iinit(f)$ --- Expects an e-node representing an application $f(x_1,\ldots,x_n)$ in $\treg[0]$, and pushes its children into $reg[1..n]$.
+    \item $\ibind(\tin, f, \tout)$ --- Matches any e-node of the form $f(x_1,\ldots,x_n)$ that resides in the e-class saved in $reg[in]$, storing its children $x_{1..n}$ in $reg[out..out+n-1]$.
+    \item $\icompare(i, j)$ --- Asserts $\treg[i] == \treg[j]$.
+    \item $\icheck(i, term)$ --- Asserts that the e-class $\treg[i]$ represents $\tterm$.
+    \item $\icontinue(f, out)$ --- Match any e-node 
+    $f(x_1,\ldots,x_n)$ (in \emph{any} e-class),
+    storing its children $x_{1..n}$ in $\treg[\tout..\tout+n-1]$.
+    \item $\ijoin(\tin, \trevpath, \tout)$ --- Match any e-node
+    $f(x_1,\ldots,x_n)$ that is reachable through $\trevpath$
+    from the e-class $\treg[\tin]$,
+    storing its children $x_{1..n}$ in $\treg[\tout..\tout+n-1]$.
+\end{itemize}
+
+To facilitate matching across various congruence relations, we adjust the machine $M$ to include the, currently being e-matched, colored assumption $color$ in its state.
+Adapting to $color$ involves changes in compilation and instructions. 
+The two primary scenarios impacted are: during $\icompare(i, j)$, ensuring $\treg[i] \equiv_{color} \treg[j]$, and in function application matching represented by a \ibind~ instruction.
+Before each `\ibind' instruction, the modified compilation will insert a new `\iclrjmp' instruction to try matching the full colored equality class, one ``root'' e-class at a time.
+This is achieved by having `$\iclrjmp(i)$' yield all the ``colored siblings'' of $\treg[i]$ in the current $\tcolor$, replacing $\treg[i]$ with the result.
+%The algorithms for \textsc{colored\_jump}($i$) and the updated \textsc{compare}($i, j$) are given in \autoref{functional:colored_machine}.
+The instruction `check' can be likewise adjusted, but we point out
+that, in fact, it can be implemented as a sequence of `\ibind's (with respective interleaved `\iclrjmp's).
+
+Multipatterns, supported by the abstract machine, enable e-matching against patterns with shared variables, useful for matching the precondition in conditional rewrite rules.
+This is achieved using the `\icontinue' instruction, which selects a new root for subsequent sub-patterns. 
+In the colored setting, while `\icontinue' remains as is, for performance, it's sometimes substituted with `\ijoin'. 
+This alternative instruction also picks a new root, but restricts selection to e-nodes that can reach a specified e-class, linked to a previously matched hole, through child edges in the e-graph.
+A \emph{reverse path} is provided to further restrict the upward search needed to find such e-nodes.
+We do not go too deep into the details, but its colored variant
+will invoke a $\iclrjmp$ at every level.
+We point out that egg does not currently implement `\ijoin',
+and our colored egg supports a special (though frequent) case in which
+$\trevpath$ is empty.
+
+The algorithms described here are presented in more depth in \annexref{app:algorithms}.

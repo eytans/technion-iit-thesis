@@ -1,0 +1,146 @@
+ % \documentclass[acmsmall,screen,review]{acmart}
+% \documentclass[10pt,conference]{IEEEtran}
+
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.20 of 2017/10/04
+%
+\documentclass{fmcad}
+
+% \AtBeginDocument{%
+%   \providecommand\BibTeX{{%
+%     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
+
+% \usepackage{natbib}
+\usepackage{amsmath}
+\interdisplaylinepenalty=2500
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{paralist}
+\usepackage[shortlabels]{enumitem}
+\usepackage{xcolor}
+\usepackage{xspace}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{latexsym}
+\usepackage{colortbl}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[export]{adjustbox}
+\usepackage{tikz}
+\usepackage{dcolumn}
+\usepackage{mathspeak}
+
+
+%% Rights management information.  This information is sent to you
+%% when you complete the rights form.  These commands have SAMPLE
+%% values in them; it is your responsibility as an author to replace
+%% the commands and values with those provided to you when you
+%% complete the rights form.
+% \setcopyright{acmcopyright}
+% \copyrightyear{2024}
+% \acmYear{2024}
+% \acmDOI{XXXXXXX.XXXXXXX}
+
+%%
+%% These commands are for a JOURNAL article.
+% \acmJournal{JACM}
+% \acmVolume{37}
+% \acmNumber{4}
+% \acmArticle{111}
+% \acmMonth{8}
+
+\usetikzlibrary{positioning}
+% \citestyle{acmauthoryear}
+
+\input{macros}
+% \bibliography{refs}
+
+\lstdefinestyle{codestyle}{
+    keywordstyle={\bfseries}, 
+    commentstyle={\color{codegreen}},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    numbers=left, 
+    language=Python 
+} 
+\lstset{style=codestyle}
+
+
+\begin{document}
+
+%\titlerunning{Easter Egg: Equality Reasoning with Multiple Assumptions}
+\title{Easter Egg: Equality Reasoning Based on E-Graphs with Multiple Assumptions}
+
+% \author{Eytan Singher}
+% \email{eytan.s@cs.technion.ac.il}
+% \affiliation{%
+%   \institution{Technion}
+%   \city{Haifa}
+%   \country{Israel}
+% }
+% \author{Shachar Itzhaky}
+% \email{shachari@cs.technion.ac.il}
+% \affiliation{%
+%   \institution{Technion}
+%   \city{Haifa}
+%   \country{Israel}
+% }
+% \author{Eytan Singher and Shachar Itzhaky}
+
+\author{\IEEEauthorblockN{Eytan Singher and Shachar Itzhaky}
+\IEEEauthorblockA{
+  Technion - Israel Institute of Technology, Haifa, Israel
+}
+}
+% \author{Eytan Singher\inst{1}\orcidID{0009-0008-4020-9040} \and
+% Shachar Itzhaky\inst{1}\orcidID{0000-0002-7276-7644}}
+
+% \institute{Technion Israel Institute of Technology, Haifa 3200, Israel
+% \email{eytan.s,shachari@technion.ac.il}\\
+% \url{https://cs.technion.ac.il/}}
+
+%\email{Anonymous}\\
+%\url{Anonymous}}
+
+\maketitle
+
+\input{00-abstract}
+% \input{ccsxml}
+
+% \keywords{Do, Not, Us, This, Code, Put, the, Correct, Terms, for,
+%   Your, Paper}
+
+% \thispagestyle{plain}
+\pagestyle{plain}
+\input{01-intro}
+% \input{02-background}
+\input{02-overview}
+\input{03-functional}
+\input{04-optimizations}
+\input{05-eval}
+\input{06-related}
+\input{07-conclusion}
+
+\clearpage
+
+\bibliographystyle{splncs04}
+\bibliography{bib}
+\clearpage
+
+%\appendix
+\begin{appendices}
+\input{12-appendix-background}
+\input{10-appenix-a}
+\newpage
+\newpage
+\input{11-appendix-b}
+\end{appendices}
+\end{document}
+
+
+

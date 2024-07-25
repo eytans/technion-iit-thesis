@@ -1,0 +1,101 @@
+
+\newcommand\SI[1]{{\color{purple}{SI: #1}}}
+\newcommand\ES[1]{{\color{blue}{ES: #1}}}
+
+
+\newcommand\eg{\textit{e.g.}\@\xspace}
+\newcommand\ie{\textit{i.e.}\@\xspace}
+\newcommand\vs{\textit{vs.}\@\xspace}
+
+\newcommand\funcname[1]{\textsf{\fontsize{8.5pt}{8pt}\selectfont#1}}
+\newcommand\smallfuncname[1]{\textsf{\fontsize{7.5pt}{7pt}\selectfont#1}}
+
+\newcommand\ecid[1]{\langle #1\rangle}
+
+\newcommand\tfilter{\funcname{filter}}
+\newcommand\tmax{\funcname{max}}
+\newcommand\tmin{\funcname{min}}
+\newcommand\ttrue{\funcname{true}}
+\newcommand\tfalse{\funcname{false}}
+\newcommand\tissorted{\funcname{is\_sorted}}
+\newcommand\tbinsearch{\funcname{bin\_search}}
+\newcommand\tlfind{\funcname{find}}
+
+\newcommand\tsmallmax{\smallfuncname{max}}
+\newcommand\tsmallmin{\smallfuncname{min}}
+
+\newcommand\tif{\mathrm{if}}
+\newcommand\tthen{\mathrm{then}}
+\newcommand\telse{\mathrm{else}}
+
+\newcommand\apifun[1]{\mathit{#1}}
+\newcommand\tunion{\apifun{union}}
+\newcommand\tfind{\apifun{find}}
+\newcommand\tinsert{\apifun{insert}}
+\newcommand\tmerge{\apifun{merge}}
+
+\definecolor{olivegreen}{HTML}{3C8031}
+
+\newcommand\croot{\ensuremath{\varnothing}\xspace}
+\newcommand\cblue{{\color{blue}blue}\xspace}
+\newcommand\cred{{\color{red}red}\xspace}
+\newcommand\cgreen{{\color{olivegreen}green}\xspace}
+
+\newcommand\tterm{\mathit{term}}
+\newcommand\treg{\mathit{reg}}
+\newcommand\tin{\mathit{in}}
+\newcommand\tout{\mathit{out}}
+\newcommand\trevpath{\mathit{reverse\_path}}
+\newcommand\tcolor{\mathit{color}}
+\newcommand\teclass{\mathit{eclass}}
+\newcommand\tdescendants{\mathit{descendants}}
+\newcommand\tminimal{\mathit{minimal}}
+
+\newcommand\instr[1]{{\fontsize{9.5pt}{8pt}\selectfont\textsf{#1}}}
+\newcommand\iinit{\instr{init}}
+\newcommand\ibind{\instr{bind}}
+\newcommand\icompare{\instr{compare}}
+\newcommand\icheck{\instr{check}}
+\newcommand\icontinue{\instr{continue}}
+\newcommand\ijoin{\instr{join}}
+\newcommand\iclrjmp{\instr{colored\_jump}}
+
+\newcommand\rwto{\overset{.\,}{\rightarrow}}
+
+\newcommand\congblue{{~\color{blue}\cong_{\mathrm{b}}\,\,}}
+\newcommand\congred{{~\color{red}\cong_{\mathrm{r}}\,\,}}
+\newcommand\conggreen{{~\color{olivegreen}\cong_{\mathrm{g}}\,\,}}
+
+\newcommand\congbluesym{{\color{blue}\cong_{\mathrm{b}}}}
+
+
+\newcommand\lowerred{{\color{red}_{\hspace{1pt}\mathrm{r}\hspace{0.5pt}}}}
+
+\newcommand\eqid{\equiv_{\mathrm{id}}}
+%
+\newcommand\myparagraph[1]{
+  \smallskip\noindent\textbf{#1}~}
+
+\newcommand*{\algorithmautorefname}{Algorithm}
+
+% because autoref does not work with the fmcad/IEEE class
+\newcommand{\annexref}[1]{\hyperref[#1]{Appendix~\ref*{#1}}}
+
+% Define a boolean flag for anonymization
+\newif\ifanon
+\anontrue  % Uncomment this line to enable anonymization
+%\anonfalse % Uncomment this line to disable anonymization
+
+% Define the anonymization macro
+\newcommand{\annon}[1]{%
+    \ifanon
+        [Anonymized]%
+    \else
+        #1%
+    \fi
+}
+
+\makeatletter
+\NewDocumentCommand{\LeftComment}{O{0em} m}{%
+  \Statex \hspace*{\ALG@thistlm}\hspace{#1}\(\triangleright\) #2}
+\makeatother

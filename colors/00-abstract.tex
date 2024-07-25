@@ -1,0 +1,54 @@
+\begin{abstract}
+% Intro: E-graphs are awsome and especially when used for equality saturation
+% Motivation: Exploratory reasoning tasks + equality saturation will be stuck on case splits 
+% Solution: Multiple congruence relations in a singhle e-graph
+% Contributions: colored e-graph approach + implementation. Experiments
+% Results are good
+
+E-graphs are a prominent data structure that has been increasing in popularity in recent years due to their expanding range of applications in various formal reasoning tasks.
+E-graphs allow systematic and efficient treatment of equality, which is pervasive in automated
+reasoning based on proofs.
+
+E-graphs handle equality well, but are severely limited in their handling of case splitting and other aspects of propositional reasoning, such as resolution, which introduce branching in provers and solvers.
+As a consequence, most tools resort to using e-graphs locally, recreating them ad-hoc when they are needed, and then discarding them.
+In exploratory scenarios, where it is necessary to retain multiple branches simultaneously, this limitation proves to be prohibitive.
+In particular, in theory exploration---%
+a process where lemmas are discovered and then proven---this poses a significant challenge.
+Theory exploration must enumerate a space of possible assumptions, and must retain all of them
+to make progress.
+This poses a severe limitation on the ability to harness e-graphs for the task.
+
+Our key observation is that in exploratory reasoning tasks, branching represents versions of the same e-graph each with an added assumption, such as ``$x > y$'' or ``$\tissorted\,l$''.
+Essentially, each e-graph represents an equality relation, and each branch corresponds to a matching coarsened equality relation.
+Based on this observation, we present an extension to e-graphs, called \emph{Colored E-Graphs}, as a way to efficiently represent all of the coarsened equality relations in a single structure.
+A colored e-graph is a memory-efficient equivalent of multiple copies of an e-graph, with a much lower overhead.
+This is attained by sharing as much as possible between different cases, while carefully tracking which conclusion is true under which assumption.
+It can be viewed as adding multiple ``color-coded'' layers on top of the original e-graph structure, representing different assumptions.
+
+We run experiments and demonstrate that our colored e-graphs can support large numbers of assumptions and terms with space requirements that are about $10\times$ lower, and with slightly improved performance.
+
+%\keywords{Automatic reasoning \and Theory exploration \and E-graph.}
+
+\end{abstract}
+
+
+% Old version
+\begin{comment}
+% E-graphs are cool and getting prominent                 }
+% E-graphs do equality saturation in other words          } E-graphs are interesting
+% They are useful for formal methods                      }
+% Problem - Boolean structures
+% 
+
+E-graphs are a prominent data structure that has been increasing in popularity in recent years, with a growing number of uses in formal methods and programming languages.
+% Used in programming languages: different papers for optimizing code, and for algebric computation in julia
+E-graphs excel at drawing consequences from a set of universally quantified equality formulas via repetitive application of first-order equality axioms.
+They offer powerful automated reasoning tools such as e-matching and e-unification, that can be used for automated theorem proving and verification.
+An aspect in which they lack relative to other proving techniques, such as resolution and sequent calculi, is handling arbitrary Boolean structure in first-order formulas.
+
+In this work, we develop an extension to e-graphs to allow them to be able to support formulas in the form of logical implications. This is done by introducing conditional conclusions that are distinguished according to the implicant; different assumptions may give rise to different conclusions, and in the context of exploratory reasoning (such as proof search and lemma synthesis), it is desired to have an efficient way to store them all simultaneously.
+
+In this context, we have identified that memory becomes a major bottleneck, and may quickly cause a reasoning to run out of memory and be unable to complete the task as hand. \SI{todo}  
+We demonstrate that our Colored E-graphs can support a multitude of assumptions with an order of magnitude lower space requirements, and with similar time requirements.
+
+\end{comment}

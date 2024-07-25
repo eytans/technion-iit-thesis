@@ -16,7 +16,6 @@
 %
 \documentclass[PhD]{misc/iitthesis}
 
-
 % Definitions of info fields for the thesis - subject, advisor,
 % faculty, acknowledgements, etc. etc. The thesis-fields file 
 % contains Hebrew text, and should use the UTF-8 character set
@@ -39,7 +38,10 @@
 % Additional machinery relevant to any thesis
 % (it's not part of the document class because it's not absolutely
 % necessary and not everyone might like it)
+\input{misc/packages}
+\input{misc/macros}
 \usepackage{misc/iitthesis-extra}
+
 
 \preparebutcheredbibliography{front/pubinfo.bib}
 
@@ -48,10 +50,8 @@
 % documents. May contains macros for notation algebra, logic,
 % calculus and other fields, as well as general shorthands and
 % LaTeX tricks, and package use commands
-\input{misc/my-general}
 
 % Definitions, settings and tweaks for this thesis specifically
-\input{misc/my-thesis-specific}
 
 \begin{document}
 
@@ -69,7 +69,7 @@
 % To conform to Technion regulations, the main matter should begin
 % with an introduction (including a survey of relevant past work):
 %
-\include{main/intro}
+\include{main/01-intro}
 
 %
 % and then cover:
@@ -84,8 +84,10 @@
 % system setup, and/or a final chapter with summary, discussion and further
 % research direction or questions)
 
-\include{main/prelims}
-\include{main/mainchap1}
+\include{main/02-prelims}
+\include{main/11-thesy}
+\include{main/12-colors}
+\include{main/13-lw-eqsat}
 \include{main/conclusion}
 %
 % Add any appendices here; they must come _before_ the bibliography

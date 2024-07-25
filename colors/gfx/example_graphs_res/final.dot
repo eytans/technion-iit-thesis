@@ -1,0 +1,61 @@
+digraph egraph {
+  compound=true
+  clusterrank=local
+  subgraph cluster_colored_0 {
+    color=red
+  subgraph cluster_0 {
+    style=dotted color=black label="0"
+    0.0[label = "false"]
+  }
+  subgraph cluster_8 {
+    style=dotted color=black label="8"
+    8.0[label = "x < y"]
+  }
+  }
+    subgraph cluster_colored_1 {
+    color=red
+  subgraph cluster_1 {
+    style=dotted color=black label="1"
+    1.0[label = "x"]
+  }
+  subgraph cluster_3 {
+    style=dotted color=black label="3"
+    3.0[label = "max"]
+  }
+  }
+  subgraph cluster_colored_2 {
+    color=red
+  subgraph cluster_2 {
+    style=dotted color=black label="2"
+    2.0[label = "y"]
+  }
+  subgraph cluster_4 {
+    style=dotted color=black label="4"
+    4.0[label = "min"]
+  }
+  }
+  subgraph cluster_colored_5 {
+    color=red
+  subgraph cluster_5 {
+    style=dotted color=black label="5"
+    5.0[label = "-"]
+  }
+  subgraph cluster_6 {
+    style=dotted color=black label="6"
+    6.0[label = "-"]
+  }
+  subgraph cluster_7 {
+    style=dotted color=black label="7"
+    7.0[label = "abs"]
+  }
+  }
+  3.0:sw -> 1.0 [lhead = cluster_1, ]
+  3.0:se -> 2.0 [lhead = cluster_2, ]
+  4.0:sw -> 1.0 [lhead = cluster_1, ]
+  4.0:se -> 2.0 [lhead = cluster_2, ]
+  5.0:sw -> 3.0 [lhead = cluster_3, ]
+  5.0:se -> 4.0 [lhead = cluster_4, ]
+  6.0:sw -> 1.0 [lhead = cluster_1, ]
+  6.0:se -> 2.0 [lhead = cluster_2, ]
+  7.0 -> 6.0 [lhead = cluster_6, ]
+}

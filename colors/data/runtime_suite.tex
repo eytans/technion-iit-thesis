@@ -1,0 +1,61 @@
+\begin{table}[t]
+    \centering
+    \caption{Run-time and exceptions. M = Out of memory, T = Timeout (3600) }
+    \label{tab:runtimesuite}
+    \setlength{\tabcolsep}{3pt} % Adjust the space between columns
+    \newcolumntype{d}[1]{D{/}{/}{#1}} % New column type for O/T column
+    \begin{tabular}{lrd{3}rd{3}rd{3}}
+    \toprule
+    & \multicolumn{2}{c}{Separate} & \multicolumn{2}{c}{Monochrome} & \multicolumn{2}{c}{Optimized} \\
+    \cmidrule(r){2-3} \cmidrule(lr){4-5} \cmidrule(l){6-7}
+    Test Suite & \multicolumn{1}{c}{Time} & \multicolumn{1}{l}{M/T} & \multicolumn{1}{r}{Time} & \multicolumn{1}{l}{M/T} & \multicolumn{1}{r}{Time} & \multicolumn{1}{l}{M/T} \\
+    \midrule
+    clam & 70.1 & 0/0 & 277.8 & 0/5 & 23.6 & 0/0 \\
+    hipspec-rev-equiv & 34.1 & 0/0 & 139.0 & 0/17 & 57.0 & 0/0 \\
+    hipspec-rotate & 3880.3 & 1/1 & 1871.4 & 0/6 & 17.4 & 0/3 \\
+    isaplanner & 8454.4 & 0/60 & 6068.4 & 0/70 & 20486.3 & 3/28 \\
+    leon-amortize-queue & 187356.4 & 52/0 & 14.8 & 0/57 & 10854.3 & 3/49 \\
+    leon-heap & 1735.9 & 0/0 & 1201.8 & 0/25 & 4949.2 & 0/13 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+
+
+
+
+
+
+\begin{comment}
+    \begin{tabular}{llr}
+\toprule
+ &  & Time \\
+E-graph Type & Test Suite &  \\
+\midrule
+\multirow[t]{7}{*}{Seperate e-graphs} & clam & 34.234764 \\
+ & hipspec-nichomachus & 0.050861 \\
+ & hipspec-rev-equiv & 2.577174 \\
+ & hipspec-rotate & 237.717540 \\
+ & isaplanner & 8913.695004 \\
+ & leon-amortize-queue & 9.668328 \\
+ & leon-heap & 216.857437 \\
+\cline{1-3}
+\multirow[t]{7}{*}{Monochromatic colored e-graphs} & clam & 394.891332 \\
+ & hipspec-nichomachus & 0.087772 \\
+ & hipspec-rev-equiv & 0.720120 \\
+ & hipspec-rotate & 1970.451256 \\
+ & isaplanner & 1739.190107 \\
+ & leon-amortize-queue & 0.294397 \\
+ & leon-heap & 1206.035020 \\
+\cline{1-3}
+\multirow[t]{7}{*}{Optimized colored e-graphs} & clam & 6.049511 \\
+ & hipspec-nichomachus & 0.085397 \\
+ & hipspec-rev-equiv & 42.016671 \\
+ & hipspec-rotate & 78.174158 \\
+ & isaplanner & 12337.053032 \\
+ & leon-amortize-queue & 43.787478 \\
+ & leon-heap & 791.375722 \\
+\cline{1-3}
+\bottomrule
+\end{tabular}
+\end{comment}

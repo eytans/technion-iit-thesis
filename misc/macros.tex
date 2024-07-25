@@ -1,0 +1,201 @@
+\newif\iffinal
+\newif\ifcomments
+\commentstrue
+% \finaltrue
+
+\ifcomments
+\newcommand\ES[1]{{\color{orange}[ES: #1]}}
+\newcommand\SI[1]{{\color{purple}[SI: #1]}}
+\else
+\iffinal\else
+\newcommand\ES[1]{{}}
+\newcommand\SI[1]{{}}
+\fi
+\fi
+
+\newcommand\eg{\textit{e.g.\@}\xspace}
+\newcommand\Eg{\textit{E.g.\@}\xspace}
+\newcommand\ie{\textit{i.e.\@}\xspace}
+\newcommand\Ie{\textit{I.e.\@}\xspace}
+\newcommand\vs{\textit{vs.\@}\xspace}
+
+\newenvironment{myparagraph}[1]
+    {\smallskip\noindent\textbf{#1}~~}{}
+
+
+% For double blind submission
+\newsavebox{\incog}
+\sbox{\incog}{
+  \includegraphics[height=5mm,trim=10 10 10 10,clip]
+       {thesy/img/Incognito.pdf}
+}
+\newcommand\incognito{\usebox{\incog}}
+
+\newcommand\TheSy{{TheSy}\xspace}
+
+% autoref configuration
+\renewcommand*{\sectionautorefname}{Section}
+\renewcommand*{\subsectionautorefname}{Subsection}
+
+\newcommand\iterm[1]{{#1}}
+
+% some operators
+\newcommand\operatorstyle[1]{\textrm{\fontfamily{ptm}\selectfont#1}}
+\DeclareMathOperator{\cons}{\operatorstyle{::}}
+\DeclareMathOperator{\snoc}{\operatorstyle{:+}}
+\DeclareMathOperator{\concat}{\operatorstyle{++}}
+
+\newcommand{\lnil}{\mbox{\relscale{0.9}$[\,]$}}
+
+\DeclareMathOperator{\maybeEq}{\overset{?}{\,=\,}}
+\DeclareMathOperator{\maybeEqTiny}{\overset{\scriptscriptstyle ?}{\,=\,}}
+\DeclareMathOperator{\eqdef}{~\widehat{=}~}
+
+\newcommand\substInTerm[3]{#1\big[#2\big/\!#3\!\big]}
+
+% specific notation
+\newcommand\Lang{\mathcal{L}}
+\newcommand\Vocab{\mathcal{V}}
+\newcommand\Constr{\mathcal{C}}
+\newcommand\Eqs{\mathcal{E}}
+\newcommand\Rewrite{\mathcal{R}}
+\newcommand\conjspace{\mathcal{S}_{EqCj}}
+\DeclareMathOperator{\rwto}{\overset{.\,}{\rightarrow}}
+\newcommand\Terms{\mathcal{T}}
+\newcommand\Type{\tau}
+\newcommand\Types{\mathcal{T_Y}}
+
+\newcommand\RewriteRelation[2]{#1 \xrightarrow[]{\Rewrite} #2}
+\newcommand\SRewriteRelation[2]{#1 \xleftrightarrow[]{\Rewrite\,} #2}
+\newcommand\SRewriteRelationi[2]{#1 \xleftrightarrow[]{\Rewrite_i} #2}
+\newcommand\RewriteSys{\{\Rewrite_i\}}%{G_\Rewrite}
+\newcommand\ARewriteSysRelation[2]{#1 \xrightarrow[]{\RewriteSys} #2}
+\newcommand\RewriteSysRelation[2]{#1 \xleftrightarrow[]{\RewriteSys} #2}
+
+\newcommand\TRewriteSysRelationSymbol{\xleftrightarrow[]{\RewriteSys}^*}
+\newcommand\TRewriteSysRelation[2]{{#1} \,\TRewriteSysRelationSymbol\! {#2}}
+\newcommand\TRewriteSysRelationTiny[2]{{#1} \xleftrightarrow[]{\scriptscriptstyle\RewriteSys^*\!\!} {#2}}
+\newcommand\TLRewriteSysRelation[2]{#1 {\xleftrightarrow[]{\RewriteSys}^*}\big|_\Terms #2}
+\newcommand\RewriteSysRelationBounded[3]{#1 {~\xleftrightarrow[]{\RewriteSys}}^{\!(#3)} #2}
+\newcommand\TRewriteSysRelationBounded[3]{#1 \underset{\Terms}{\xleftrightarrow[]{\RewriteSys}}^{\!(#3)} #2}
+\newcommand\FV{\mathrm{FV}}
+\newcommand\SymbolicExamples{SEs}
+\newcommand\SERelation[2]{#1 \cong #2}
+
+\newcommand\pholder[2]{\overset{\scriptscriptstyle #2}{\circ_{\mbox{\relscale{.6}$#1$}}}}  % OCD much?
+\newcommand\Symexes[1]{\mathcal{S}^{#1}}
+\newcommand\EquivRel{\mathcal{Q}}
+
+\newcommand\ctor{\mathit{ctor}}
+\DeclareMathOperator{\ltwf}{\sqsubset}
+
+\newcommand\prvbyS{\overset{\scriptscriptstyle S}{\vdash}}
+\newcommand\prvbySinline{\vdash^{^{\hspace{-.4em}S\hspace{-.2em}}}}
+
+% functions that we love
+\newcommand\treverse{\textrm{reverse}}
+\newcommand\tfilter{\textrm{filter}}
+\newcommand\tmap{\textrm{map}}
+\newcommand\tfold{\textrm{fold}}
+\newcommand\tsum{\textrm{sum}}
+\newcommand\tlen{\textrm{len}}
+\newcommand\tsucc{\textrm{succ}}
+\newcommand\tswitch{\textrm{switch}}
+\newcommand\ttreeflat{\textrm{flatten}}
+\newcommand\ttreemap{\textrm{tmap}}
+\newcommand\tid{\textrm{id}}
+\newcommand\tdrop{\textrm{drop}}
+\newcommand\ttake{\textrm{take}}
+\newcommand\tmax{\funcname{max}}
+\newcommand\tmin{\funcname{min}}
+\newcommand\tissorted{\funcname{is\_sorted}}
+\newcommand\tbinsearch{\funcname{bin\_search}}
+\newcommand\tlfind{\funcname{find}}
+
+\newcommand\tprim[1]{{\textsf{\itshape\relscale{.9}#1}}}
+\newcommand\ttrue{\tprim{true}}
+\newcommand\tfalse{\tprim{false}}
+\newcommand\tforall{\tprim{all-true}}
+\newcommand\texists{\tprim{any-true}}
+
+
+\newcommand\trev{\textrm{rev}}  % short for reverse
+
+% types (that we also love)
+\newcommand\ttype[1]{{\textsf{\relscale{.9}#1}}}
+\newcommand\tlist{\ttype{list}}
+\newcommand\tbool{\ttype{bool}}
+\newcommand\tnat{\ttype{nat}}
+
+\newcommand\tkeyword[1]{\textrm{\color{blue!70!black}#1}}
+
+\newcommand\tif{\tkeyword{if}}
+\newcommand\tthen{\tkeyword{then}}
+\newcommand\telse{\tkeyword{else}}
+\newcommand\tmatch{\tkeyword{match}}
+\newcommand\twith{\tkeyword{with}}
+
+\lstset{basicstyle=\ttfamily}
+
+% A bit of color
+\newcommand\clrterm{\color{blue!65!green}}
+\newcommand\clratom{\color{blue!60!green}}
+\newcommand\clrsymex{\color{orange!40!red}}
+\newcommand\clrhi{\color{red!70!black}}
+
+\newcommand\cmptheories{\textsf{\color{violet!50!white}\smaller{\hspace{1pt}\%\hspace{1pt}}}}
+
+\newcommand\funcname[1]{\textsf{\fontsize{8.5pt}{8pt}\selectfont#1}}
+\newcommand\smallfuncname[1]{\textsf{\fontsize{7.5pt}{7pt}\selectfont#1}}
+
+\newcommand\ecid[1]{\langle #1\rangle}
+
+\newcommand\tsmallmax{\smallfuncname{max}}
+\newcommand\tsmallmin{\smallfuncname{min}}
+
+\newcommand\apifun[1]{\mathit{#1}}
+\newcommand\tunion{\apifun{union}}
+\newcommand\tfind{\apifun{find}}
+\newcommand\tinsert{\apifun{insert}}
+\newcommand\tmerge{\apifun{merge}}
+
+\definecolor{olivegreen}{HTML}{3C8031}
+
+\newcommand\croot{\ensuremath{\varnothing}\xspace}
+\newcommand\cblue{{\color{blue}blue}\xspace}
+\newcommand\cred{{\color{red}red}\xspace}
+\newcommand\cgreen{{\color{olivegreen}green}\xspace}
+
+\newcommand\tterm{\mathit{term}}
+\newcommand\treg{\mathit{reg}}
+\newcommand\tin{\mathit{in}}
+\newcommand\tout{\mathit{out}}
+\newcommand\trevpath{\mathit{reverse\_path}}
+\newcommand\tcolor{\mathit{color}}
+\newcommand\teclass{\mathit{eclass}}
+\newcommand\tdescendants{\mathit{descendants}}
+\newcommand\tminimal{\mathit{minimal}}
+
+\newcommand\instr[1]{{\fontsize{9.5pt}{8pt}\selectfont\textsf{#1}}}
+\newcommand\iinit{\instr{init}}
+\newcommand\ibind{\instr{bind}}
+\newcommand\icompare{\instr{compare}}
+\newcommand\icheck{\instr{check}}
+\newcommand\icontinue{\instr{continue}}
+\newcommand\ijoin{\instr{join}}
+\newcommand\iclrjmp{\instr{colored\_jump}}
+
+
+\newcommand\congblue{{~\color{blue}\cong_{\mathrm{b}}\,\,}}
+\newcommand\congred{{~\color{red}\cong_{\mathrm{r}}\,\,}}
+\newcommand\conggreen{{~\color{olivegreen}\cong_{\mathrm{g}}\,\,}}
+
+\newcommand\congbluesym{{\color{blue}\cong_{\mathrm{b}}}}
+
+
+\newcommand\lowerred{{\color{red}_{\hspace{1pt}\mathrm{r}\hspace{0.5pt}}}}
+
+\newcommand\eqid{\equiv_{\mathrm{id}}}
+
+% because autoref does not work with the fmcad/IEEE class
+\newcommand{\annexref}[1]{\hyperref[#1]{Appendix~\ref*{#1}}}

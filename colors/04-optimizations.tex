@@ -1,0 +1,204 @@
+\section{Optimizations}
+\label{colors:optimizations}
+
+% How we should present this section:
+%
+%   Intro
+%   Show problems that are existing still:
+%       a. go into the just presented bad rebuild - go into the e-node count
+%       b. inform on worse ematching with duplicate results
+%       c. e-node readding
+%   sub-section 1 data structure
+%   2. Improve data structure to somewhat reduce these problems - Represent colored e-nodes seperately
+%       a. Assume small changes again
+%       Also Deals with previously presented problems:
+%       b. We have a canonized version of colored conclusions to somewhat prevent readding.
+%       c. No extra results in e-matching because of seperation.
+%       d. Might want to go into big changes complements clones
+%   3. We can prune unneeded e-classes in an attempt to improve memory usage for long runs (probably more relevant in cases where some rewrite rules will be used less, to prevent readding).
+%   4. A small optimization of having one colored e-class per colored equality class
+%   sub-section 2 algorithms
+%   Algoritmic improvements that can be made without changes to data structures.
+%   5. Improve e-matching by reusing black results as black
+%       a. We jump to brothers only on a different "black" path to prevent duplicate paths in the e-graph
+%       b. Might be harder to apply conditions
+%   6. Improve rebuilding by reusing black conclusions
+%   subsection 3 system upgrades
+%   As part of the change to colored e-graphs, some other parts of the system might need to change
+%   7. e-matching should stream results as we e-match all colors at once
+%   8. condition checking needs to actively check all colors for black matches
+
+% Stuff we did not do:
+%   1. Parallel colored congruence
+%   2. Hierarchical colors
+%   3. Had the possibilty of coloring only e-nodes, but that makes the rebuilding process very difficult
+
+\begin{comment}
+This section details key optimizations for colored e-graphs, addressing challenges encountered when applying operations such as e-matching and rebuilding.
+These optimizations target issues like handling e-nodes across multiple layers, inefficient rebuild processes, duplicate results in e-matching, and e-node re-additions. 
+We'll first outline these issues before presenting solutions.    
+\end{comment}
+
+Both rebuilding and e-matching in colored e-graph, as discussed in \autoref{colors:overview}, can be significantly slower compared to a separate, minimized e-graph.
+
+In the rebuilding aspect,
+two main burdens are that the colored e-graph contains additional e-nodes compared to each of the separate ones, and that building a colored hash-cons (which will be presented shortly) requires going over all the e-classes.
+
+In the e-matching aspect, colored e-matching
+may produce duplicate results due to the e-graph not being minimized according to the color's congruence relation;
+that is, colored-congruent terms are not always merged under a single e-class id.
+To illustrate this, consider a simple e-graph
+representing the terms $1\cdot 1$, $1\cdot x$, $1\cdot y$, and $x\cdot y$.
+Introduce a color, \cblue, where $x \congblue y$.
+A simple pattern such as $1\cdot ?v$ would have three matches, with assignments $?v \mapsto 1, ?v\mapsto x, ?v\mapsto y$.
+If the \cblue layer were a separate e-graph, $x$ and $y$ would have been in the same e-class,
+so one of the matches here is redundant (as far as the blue layer is concerned).
+Of course, in the black layer they are different matches; the point is, that many terms are added to the graph only as a result of a colored match,
+so matching them in the black e-graph is mostly useless to the reasoner.
+On the other hand, their \emph{presence} in the black layer means they cannot ever be merged, leading to duplicate matches, as seen above, even in the respective colored layer(s).
+
+Moreover, when inserting e-nodes to the e-graph, the hash\-cons is used to prevent duplication, relying on it being canonized.
+Adding an e-node from a colored conclusion
+(following a match modulo $\congbluesym$) does not benefit from canonization.
+In fact, each e-node $f(x_1,\dots,x_n)$ has a multitude of black representatives that are $\congbluesym$-equivalent. 
+Each child $x_i$ in the e-node can be presented by any black id such that $e \in [x_i]_b$, so there are $\prod_i |[x_i]_b|$ representations.
+These variants are distinct in the root color,
+so they cannot be de-duplicated as usual.
+
+To address these issues, we present a series of optimizations to the colored e-graph data-structure and the procedures. 
+These optimizations aim to reuse the ``root'' and ancestor layers as much as possible, both in terms of memory usage and compute.
+Thus, we can achieve a memory efficient, but effective colored e-graph. 
+
+\subsection{Data-structure optimizations}
+% Having the seperate differences
+\myparagraph{Colored e-nodes.}
+In the basic implementation outlined in \autoref{colors:overview}, adding e-nodes from colored e-matches to the root e-graph may make it very large and increase the cost of all subsequent actions. 
+The optimized version addresses this by introducing \emph{colored e-nodes}, where e-nodes resulting from colored matches are tagged with their inducing colors. 
+Each colored layer has its own colored hash-cons and e-class map, designed to store only the differences from the parent layer, thereby maximizing reuse.
+The new mappings added are:
+%\newcommand\eqid{\equiv_{\mathrm{id}}}
+%
+\[
+\renewcommand\arraystretch{1.2}
+\begin{array}{ll}
+  \mbox{e-class color}& \! \! EC : E \to C  \\
+  \mbox{colored parent}& \! \! P_c = \{ (n, e) ~|~ (n, e) \in P \land EC(e) = c \} \\
+  \mbox{colored hashcons}& \! \! H_c = \{n \mapsto e ~|~ n \in M(e) \land EC(e) = c \} \\
+\end{array}
+\]
+
+Note that base parents and hashcons from the non-optimized version are incorporated as $P_\croot$ and $H_\croot$ in colored mappings.
+
+This optimization applies the hierarchy in all operations. 
+For example, while inserting an e-node to a color $c$, it is looked up in the colored hash\-cons for $c$ and all its ancestors, $p^*\!(c)$, and finally, if no match is found, it is inserted into a new e-class $e$, setting $EC(e) = c$.
+The colored hashcons $H_c$ is canonized to color $c$, ensuring that new e-nodes are unique to this layer and avoiding colored duplicates. 
+(Some duplication related to $c$ may still occur in ancestor layers, as their e-nodes are not canonized to $c$.)
+The optimization significantly impacts e-matching: previously when matching a function application $f$, all $f$-e-nodes in $N$ were considered; now, only those e-nodes $n$ in the colors hierarchy, that is, those satisfying $\exists e.~n \in M(e) \land EC(e) \in p^*(c)$, are examined.
+
+% Assume small changes
+%\SI{why is this paragraph in this particular place}
+%The optimized version of the colored e-graphs will have additional e-nodes for each color.
+%In the context of equality saturation, any additional colored e-node results from some rewriting conclusion, so the more colored unions happened, the bigger we expect the colored e-graph to be, tying the size of the colored e-graph to the, assumed to be small, changes introduced under each color.
+
+% Present pruning
+\myparagraph{Pruning.}
+Recall that having a coarsening relation between the colors in the hierarchy means that any result found in an ancestor color is also true for the descendant(s).
+And so, following merges, some of the colored e-nodes could become subsumed by e-nodes that already exist in an ancestor layer.
+We present an efficient deferred pruning method to remove the redundant e-nodes.
+
+Normal e-graph minimization relies on having all e-nodes canonized.
+A colored e-graph usually does not canonize all e-nodes to a specific color $c$ (except for \croot). 
+Rather, $H_c$ contains only the difference from previous layers. 
+To find redundant e-nodes, the colored e-graph  builds a transient hashcons during rebuild from all relevant e-nodes that are not $c$-colored.
+The new hashcons, $H'_c$, is created as follows:
+\[
+\renewcommand\arraystretch{1.2}
+\begin{array}{l@{}l}
+H'_c = \{& \mathit{canonize}_c(n) \mapsto \tfind_c(e) ~|~ \\
+& ~~n \in M(e), EC(e) \in p^+(c) \}
+\end{array}
+\]
+% redundant = $\{ n | \exists e. n \in M(e) \land EC(e) = c \land n \in H'_c \}$
+A $c$-colored class $e$ can be reduced by removing all e-nodes that already exist in $H'_c$.
+While pruning is promising, one must take care that pruned e-nodes are not immediately re-added.
+% We can add that this is probably when we add conclusions back to the black layer or we stop using certain rewrite rules.
+
+% Present the "single colored e-class per colroed equality class" thing
+\myparagraph{Colored minimization.}
+Another improvement is having multiple colored e-nodes (of the same color) in a single (black) e-class. 
+As mentioned previously, any e-node that resulted from a colored insert had to be in their own e-classes, as no black unions would be performed on them.
+But, given that $e \equiv_c e' \land EC(e) = EC(e') = c$, then the two black e-classes $e,~e'$ can be merged as both contain colored e-nodes of the same color and are in the same colored e-class (of the same color).
+Thus an invariant is kept that each colored equality class has at most one black e-class containing colored e-nodes.
+
+\subsection{Procedure optimizations}
+%   6. Improve rebuilding by reusing black conclusions
+\myparagraph{Rebuild.}
+When rebuilding, we first reconstruct the congruence relation of the ``root'' layer.
+Even though a color, for example {\color{blue}blue}, will need to rebuild its own congruence, it still holds that ${\cong}\subseteq{\congblue}$.
+So, any union induced by ${\cong}$ can be applied to the {\color{blue}blue} relation.
+To understand the implications, consider the e-graph representing the terms $x$, $y$, $f(x)$, $f(y)$, $f(f(x))$, and $f(g(y))$ where the {\color{blue}blue} color contains the additional assumption that $g(y) \congblue f(y)$.
+If we union $x$ and $y$, the black congruence will include $f(x) \cong f(y)$  which also holds in the blue relation.
+But, the rebuilding of the blue congruence invariant will include an additional, deeper (in terms of rebuilding rounds), conclusion $f(f(x)) \congblue f(g(y))$.
+This demonstrates how reusing parent relations is useful; the rebuild depth can be reduced by first rebuilding finer relations.
+
+%   5. Improve e-matching by reusing black results as black
+%       a. We jump to brothers only on a different "black" path to prevent duplicate paths in the e-graph
+\myparagraph{E-match.}
+In e-matching, we implement an optimization where findings on the root layer are also valid for higher layers. 
+To avoid redundant pattern matching, e-matching begins only from \croot, adding colored assumptions as needed. 
+There are two scenarios for introducing a colored assumption: 
+The first during \emph{compare($i, j$)}, if $\treg[i] \not \equiv_{\tcolor} \treg[j]$, we explore descendant colors $c$ where $\treg[i] \equiv_c \treg[j]$, adding states with $\tcolor \gets c$ to the backtracking stack $bs$.
+The second is on-demand coloring in \iclrjmp, where jumps to any color $c$ are enabled if $M.color \in p^+(c)$ and the target e-class is otherwise unreachable.
+We minimize the set of new assumptions to prevent redundant colors. 
+During the updated \icompare, \icompare', if a color $c$ is sufficient, its descendants are not added to $bs$. 
+For to updated \iclrjmp, \iclrjmp', e-classes are matched only with their topmost (closest to root) congruent descendants. 
+By taking the topmost descendants, we ensure that all additional matching paths are unique, as at least one (different) e-class is chosen at each fork.
+Despite eliminating duplicate paths, some duplicate colored matches persist due to incomplete minimization of the e-graph.
+The modified instructions are described in more detail in \annexref{app:algorithms}. 
+
+\begin{comment}
+    To support matching multiple colors at once, we modify the machine such that it will add colored assumptions on demand during the search, and push it into the backtracking stack $bs$.
+    For that purpose, we modify $M$ to also include the current colored assumption $color$, which will be initialized to $\varnothing$.
+    There are two situations where a colored assumption will be added.
+    The first is during \emph{compare($i, j$)}.
+    If $reg[i] \neq reg[j]$, then we don't necessarily need to backtrack, as there might be a descendant of $color$, $c$, under which $reg[i] \equiv_c reg[j]$.
+    Therefore, for each such $c$ the current state with the new assumption $color \gets c$ is add to the backtracking stack $bs$.
+    The second case is when matching a function application of $p$ which is represented by a bind instruction.
+    Before each bind instruction, a modified compilation procedure will insert a new \emph{colored\_jump} instruction.
+    The \emph{colored\_jump($i$)} instruction will add all the "colored siblings" of the current $color$ to $bs$.
+    In addition any additional colored assumption $color`$ that is descendant of $color$, and has additional "colored siblings" will also be pushed to $bs$.
+    The algorithms for \emph{colored\_jump($i$)} and the updated \emph{compare($i, j$)} are given in \ES{TODO}.
+\end{comment}
+
+
+%       b. Might be harder to apply conditions
+
+%  TODO: I think we should not include system upgrades.
+% subsection 3 system upgrades
+%   As part of the change to colored e-graphs, some other parts of the system might need to change
+%   7. e-matching should stream results as we e-match all colors at once
+%   8. condition checking needs to actively check all colors for black matches
+
+
+
+% Therefore, TheSy does not keep all the assumptions (E-Graph clones). Rather, TheSy uses the case splitting mechanism to find relevant equalities only at a few strategic points in the exploration, and then frees all the clones to save memory.
+% \ES{smoother}
+% We aim to further amortize costs while enhancing the memory usage efficiency of the E-Graph, by maximizing component reuse. 
+% This approach requires a detailed understanding of the primary data structures employed by the egg library. 
+
+% Remind use case and go over the problems we need to deal with when no colored e-nodes
+\begin{comment}
+Colored e-graphs are designed to be used in larger scale test cases where some tool is using the e-graph for exploration tasks.
+This means that the e-graph will contain numerous e-nodes, and possibly multiple colors.
+While we hope the reader is convinced our e-node sharing approach is useful, the solution provided so far will be inapplicable to any real case.
+The main culprit is that we insert all e-nodes to the black relation.
+Having all e-nodes exists in the black relation means they will also exist for all colored relations.
+While this doesn't seem detrimental to the performance at first, the problem actually arises from having additional successful applications of rewrites.
+Of course it seems like a good thing because each application retains soundness, and we gain more conclusions in the e-graph.
+But, having all these conclusions means that even for each additional e-node we might attempt to match it in additional rewrites, and the rebuilding will need to go over it.
+Also, rebuilding for colored congruence relations, which is inefficient, will need to be applied to all e-nodes of all colors.
+\end{comment}
+
+% A good example: For optimizations: For example, in a relation where all E-Classes are unioned, E-Matching will be very inefficient due to the caveat we presented.
+% This issue becomes more pronounced when considering the additional results in e-matching. As the number of successful rewrite applications increases, more e-nodes are added to the e-graph. This may seem beneficial, as each application maintains soundness and results in more conclusions within the e-graph. However, in our experiments [TODO], we do not observe any of these advantages.
+

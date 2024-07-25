@@ -1,0 +1,44 @@
+\section{Related Work}
+\label{colors:related}
+
+\myparagraph{Theory exploration and its applications.}
+Interest in exploratory reasoning in the context of functional calculi started with IsaCoSy~\cite{JAR2010:Johansson}, a system for lemma discovery based in part on CEGIS~\cite{ASPLOS2006/Solar-Lezama}.
+In a seminal paper, QuickSpec~\cite{JFP2017:Smallbone}
+propelled applicability of such reasoning for inferring specifications from implementations
+based on random testing,
+with deductive reasoning to verify generated conjectures~\cite{ICAD2013:Claessen,ITP2017:Johansson}.
+TheSy~\cite{thesy} and Ruler~\cite{ruler} have both incorporated e-graphs to some extent in the exploration process: they are used to speed up equivalence reduction of the space of generated terms, and, in~\cite{thesy}, also the filtering and qualification phases using symbolic examples.
+The evaluation of the latter shows quite clearly that case splitting is a major obstacle to symbolic exploratory reasoning,
+due to the large number of different cases and derived assumptions.
+
+In the area of conditional rewrite discovery,
+Speculate~\cite{DBLP:conf/haskell/BraquehaisR17}
+naturally builds on the techniques from QuickSpec and depends on property-based testing techniques to generate inputs that satisfy some conditions.
+SWAPPER~\cite{DBLP:conf/fmcad/0002S16} is a relatively early example of exploring using SyGuS with a data-driven inductive-synthesis approach with emphasis on finding rules that are most efficient for different problem domains.
+It requires a large corpus of similar SMT problems to operate.
+
+%QuickSpec etc (from TheSy and others), Ruler, SWAPPER, Speculate, Spectacular
+%Case splitting in hipspec and conditions in Speculate
+
+\myparagraph{Other e-graph extensions.}
+E-graphs were originally brought into use for automated theorem proving~\cite{JACM2005:Detlefs},
+and were later popularized as a mechanism for implementing low-level compiler
+optimizations~\cite{POPL2009:Tate},
+by extending them with ``$\varphi$-nodes'' to express loops.
+Relational e-matching~\cite{DBLP:journals/pacmpl/ZhangWWT22}
+makes use of Datalog semina\"ive evaluation
+to harness the power of query planning in database systems.
+Subsequently, Datalog-powered e-matching has been recently fused with core Datalog semantics to allow richer logic programming by exposing equality saturation as a building block in a framework called egglog~\cite{DBLP:pldi23/Zhang}.
+Since Datalog is based on Horn clauses, this meshes very well with conditional rewriting.
+It should be noted, though, that it is still a monotone framework, and does not allow backtracking or simultaneous exploration of alternative assumptions.
+
+ECTAs~\cite{Koppel22,Koppel23} are another, related compact data structure that extends e-graphs, Version-Space Algebras~\cite{DBLP:conf/icml/LauDW00,DBLP:journals/ml/LauWDW03}, and Finite Tree Automata~\cite{DBLP:journals/pacmpl/0001M17},
+with the concept of ``entanglement'';
+that is, some choices of terms from e-classes
+may depend on choices done in other e-classes.
+Since the backbone of ECTAs is quite similar to an e-graph, the colors extension is applicable to this domain as well.
+
+\myparagraph{Uses of e-graphs in SMT.}
+E-graphs are a core component for equality reasoning in SMT solvers~\cite{z3,DBLP:conf/tacas/BarbosaBBKLMMMN22}, in most theory solvers such as QF\_UF, linear algebra, and bit-vectors.
+E-matching is also used for quantifier instantiation~\cite{DBLP:conf/tacas/NiemetzPRBT21}, which is, in its essence, an exploratory task and requires efficient methods~\cite{DBLP:conf/cade/MouraB07}.
+In these contexts, implications and other Boolean structures are treated by the SAT core (in CDCL(T)), and the theory solver only handles conjunctions of literals.

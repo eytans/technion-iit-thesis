@@ -1,0 +1,40 @@
+%\newcommand\slightlysmaller{\fontsize{7pt}{7pt}\selectfont}
+
+\begin{tikzpicture}
+  \begin{axis}[
+  		width=9cm,
+        height=6cm,
+        xmin=-2,
+        xmax=89,
+        xtick distance=15,
+        extra x ticks={85},
+        ymode=log,
+        ytick distance=10^1,
+        ymajorgrids=true,
+        xlabel={benchmarks solved},
+        ylabel={accumulated time\, 
+           (\textit{s}\hspace{.75pt})},
+           mark size=.5pt,
+        legend style={
+          anchor=north west,
+          font={\fontsize{7.5pt}{7.5pt}\selectfont}
+        },
+        legend image post style={mark size=2pt, scale=0.8},
+        legend cell align={left}]
+        
+    \addplot[smooth,mark=*,mark size=.6pt,mark options={fill=white},green!50!gray] plot 
+      table[y=hipster] {thesy/img/cactus-plot-with-cs.dat.txt};
+    \addlegendentry{Hipster}
+
+    \addplot[smooth,mark=*,orange!50!red] plot 
+       table[y=thesy] {thesy/img/cactus-plot-with-cs.dat.txt};
+    \addlegendentry{TheSy\,%
+    {\smaller(w\hspace{-1pt}/\hspace{-1pt} case split)}}
+
+    \addplot[smooth,mark=x,mark size=1.1pt,purple] plot 
+       table[y=thesy] {thesy/img/cactus-plot-no-cs.dat.txt};
+    \addlegendentry{TheSy\,%
+    {\smaller(w\hspace{-1pt}/\hspace{-1pt}o case split)}}
+
+  \end{axis}
+\end{tikzpicture}

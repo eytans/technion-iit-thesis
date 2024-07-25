@@ -1,0 +1,128 @@
+\section{Background on E-graphs}
+\label{background}
+
+% The following went into chatgpt
+% An E-Graph needs to support Adding E-Nodes, a union operation, E-Matching, and keeping congruence closure. egg [citetion] added changed how we use E-Graphs by expressivly supporting the equality saturation workflow. They did this by only holding congruence closure at certain points in the run, allowing us to amortize the costs of rebuilding the closure.
+% In this work, we are further expanding on equality saturation. In our use case, the E-Graph is used for equality saturation, in an automatic reasoning set up, where there is a need to reason about multiple cases, or multiple equivalence relations at once. In this setting we want to again amortize the costs, but this time improve the memory usage of the E-Graph, by reusing as many parts as possible. To better understand this point, we first explain what are the main data structures used by egg. 
+% As mentioned in egg [citation], it is useful to think about an E-Graph as an extension of union-find, to support expressions. The main operations of the E-Graph, that is supporting the extended union-find, are implemented using a union-find, equality class (E-Class) map, and hash-cons. The union-find is used to track the equality classes, while the E-Class map and hash-cons are used for supporting the "expressions" part. The expression support is actually two fold, first we need to support addition, and second we need to support congruence closure. Addition is supported using the hash-cons which is a memorization of the expressions (E-Nodes) and what is their containing E-Class. The congruence closure is done during "rebuild" where the E-Class map (and their parents) are used in conjunction with the hash-cons to find E-Classes that should be merged.
+% There is the additional E-Matching that needs support for equality saturation, but that is implemented over the E-Class map with an additional hash-map for expression operation to class-ids for performance.
+
+We will now present some general background on e-graphs.
+Same as in \autoref{overview}, we assume a term language $L$ where terms are constructed using \emph{function symbols}, each with its designated arity.
+We use $f^{(r)}\in\Sigma[L]$ to say that $f$ is
+in the \emph{signature} of $L$ and has arity $r$.
+
+An e-graph $\mathcal{G}$ serves as a compact data structure representing a set $S\subseteq L$ of terms and a congruence relation ${\cong}\subseteq L\times L$. This congruence relation, in addition to being reflexive, symmetric, and transitive, is also closed under the function symbols of $\Sigma[L]$. That is, for every $f^{r}\in\Sigma[L]$, and given two lists of terms $t_{1..r}\in L$ and $s_{1..r}$, each of length $r$, if $t_i\cong s_i ~ (i=1..r)$, then it follows that $f(t_1,\ldots,t_r)\cong f(s_1,\ldots,s_r)$. This property, known as \emph{congruence closure}, is a key attribute of the data structure. The maintenance of this attribute as an invariant significantly influences the design and implementation of e-graph actions.
+
+The egg library~\cite{egg} revolutionizes the application of e-graphs by explicitly supporting the equality saturation workflow.
+It enables the periodic maintenance of congruence closure, via \emph{deferred rebuild}, allowing for the amortization of associated rebuilding costs.
+%We give a short background on how egg achieves better performance by means of efficient data structure representation.
+
+In egg, the authors present the e-graph as a union-find-like data structure, augmented to support operations on expressions.
+This implementation is primarily achieved through the utilization of three key structures: a hash-cons table, a union-find structure, and an e-class map.
+These structures collectively underpin the functionalities integral to the operation of the e-graph.
+
+\begin{enumerate}[(a)]
+%
+% Union find
+\item The \underline{union-find} component is responsible for keeping track of merged e-classes and maps each e-class id to a single representative for all (transitively) merged e-classes.
+This information is later used to canonicalize the keys and values of the hash-cons.
+%
+% E-Class map
+\item The \underline{e-class map} stores the structure of the e-graph.
+For each e-class id, the map keeps all the e-nodes that are contained therein.
+E-nodes are similar to AST nodes except that their children point to e-class ids instead of containing a single sub-term each.
+%Through the contained e-nodes, child e-classes can be reached. 
+%For efficiency, the e-graph also keeps the parents of each e-class,
+%i.e., those of whose it is a child of.
+%
+% Hash-Cons
+\item The \underline{hash-cons} table maps e-nodes to their containing e-class id.
+An important aspect of the hash-cons is that after rebuilding, its keys and values are expected to be \emph{canonical}. 
+That is, whenever e-classes are merged one of their ids becomes ``the'' representative.
+%A \emph{canonical} hash-cons will only contain representative ids.
+%For example, if $x$ and $y$ are merged into $y$, then $f(x,z) \mapsto x$ must become $f(y,z) \mapsto y$.
+\end{enumerate}
+
+%Note, that both the hash-cons and the parent e-classes can be derived from the e-nodes contained in the e-class map.
+%But, they are important aspects of the efficient e-graph implementation presented, and therefore are mentioned as part of the data structure.
+
+An e-class with id $e$ represents a set of terms defined recursively as:
+\begin{align*}
+L(e) &= \{f(t_1,..,t_k)~|~ \\ 
+     & \qquad f(e_1,..,e_k)\in M(e), t_i\in L(e_i)\mbox{~for~}i=1..k\}
+\end{align*}
+We will use the notation $[t]$ to refer to e-class id where $t\in L([t])$.
+
+\begin{example}
+The terms $\tmax(x, y)$ and $x - y$ are both represented in the e-graph in \autoref{overview:egraph-max}(a) using e-classes $\ecid5$ and $\ecid6$, respectively, with  the following e-nodes:
+%
+\[
+M \quad = \quad
+\adjustbox{valign=t}{
+$
+\begin{array}{@{}ll}
+  \ecid1 \mapsto \{\ttrue\} & \ecid2 \mapsto \{\tfalse\} \\
+  \ecid3 \mapsto \{x\} & {} \ecid4 \mapsto \{y\} \\
+  \ecid5 \mapsto \{\tmax(\ecid3, \ecid4)\} & \ecid6 \mapsto \{\ecid3 - \ecid4\}
+\end{array}
+$
+}
+\]
+
+\begin{comment}
+The e-graph maintains a union-find, which, in this trivial example, is a bit boring since it is an identity relation.
+
+The contents of the hash-cons (which can be easily discerned by inverting $M$) are:
+\[H \quad = \quad a \mapsto \ecid1 \quad b\mapsto \ecid2 \quad 
+   c\mapsto \ecid3 \qquad
+  \ecid2 + \ecid3 \mapsto \ecid4 \qquad \ecid1 \cdot \ecid4\mapsto \ecid5\]
+\end{comment}
+
+\end{example}
+
+An e-graph where every e-class is a singleton, like this one, is just a forest of expression trees with sharing.
+The situation becomes more interesting once we start mutating the graph via its dedicated operations.
+
+% Functionalities
+\begin{enumerate}
+% (1) Insert
+\item \underline{Insert} - Adds a term $t$ to the e-graph, one e-class per AST node, reusing e-classes where possible by searching the hash-cons.
+% (2) Union
+\item \underline{Merge} - Merging two e-classes by applying a union operation of the union-find and merging the classes in the e-class map.
+This, however, temporarily invalidates the invariant of the hash-cons and e-class map that all e-class ids and e-nodes must be canonical.
+% (3) Congruence closure
+\item \underline{Rebuilding (Congruence closure)} - As explained before, a union of $[x]$ into $[y]$ necessitates replacing any e-node $f([x],[z])$ by $f([y],[z])$.
+Moreover, if $f([x],[z])\in[w_1], f([y],[z])\in[w_2]$,
+then, following this replacement, both $[w_1]$ and $[w_2]$ now contain
+$f([y],[z])$, meaning that $[w_1] = [w_2]$ and evoking a cascading union of $[w_1], [w_2]$.
+A significant contribution by egg is the concept of deferred (and thus periodic) rebuilding.
+This periodic rebuilding is highly efficient and well-suited for equality saturation.
+% (4) E-matching
+\item  \underline{E-matching} - Looking up a \emph{pattern} in the set of terms represented by the e-graph in a top-down manner, traversing the e-nodes downward via the e-class map.
+A pattern is a term with (zero or more) \emph{holes} represented by metavariables $?v_{1..k}$.
+For example, $(?v_1+1)\cdot ?v_2$ is a pattern.
+Pattern lookup is important for rewriting in equality saturation.
+\end{enumerate}
+
+\smallskip
+\noindent\textbf{Rewriting.~}
+We assume a background set of symbolic \emph{rewrite rules} (r.r.), each of the form $t\rwto s$,
+where $t$ and $s$ are patterns as explained in item (4) above.
+A \emph{match} $\theta$ of pattern $t$ on the e-graph, is an assignment mapping metavariables to e-class ids.
+$t\theta$ represents an e-node, and we will denote its equality class as $[t\theta]$.
+Applying the r.r. is done by merging the e-classes $[s\theta]$ and $[t\theta]$. 
+Because the e-node $s\theta$ might be new, it needs to also be inserted, resulting in $union([t\theta], insert(s\theta))$.
+Repetitively applying such rewrite rules to a set of terms can be used to generate growing sets of terms that are equivalent, according to rewrite semantics, to ones in the starting set.
+Ideally, the set eventually \emph{saturates}, in which case the e-graph now describes \emph{all} the
+terms that are rewrite-equivalent.
+We point out that in many situations, the e-graph keeps growing as a result of rewrites and never gets saturated---so the number of successive rewrite iterations, or ``rewrite depth'', has to be bounded.
+
+A \emph{conditional rewrite rule} (c.r.r.)~\cite{jcss/Bergstra} is a natural extension of a r.r. that has the following form:
+$\varphi \Rightarrow t \rwto s$
+where $\varphi$ is a precondition for rewriting $t$ to $s$. For example, the rules for $max$ are:
+${?x} > {?y} \Rightarrow \tmax({?x}, {?y}) \rwto {?x}$ and 
+${?x} \leq {?y} \Rightarrow \tmax({?x}, {?y}) \rwto {?y}$.
+%
+The semantics of a precondition $\varphi$ is defined such that a term matching the pattern of $\varphi$
+must be unified with Boolean $\ttrue$ in order for the rewrite to be applied.

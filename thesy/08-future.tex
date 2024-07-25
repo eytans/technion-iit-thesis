@@ -1,0 +1,22 @@
+\section{Future Work}
+
+\TheSy has been built from the grounds up based on term rewriting, and the results s what previous, non-symbolic tools have been able to accomplish.
+However, it is our opinion that the advantages lie in its  potential to extend to new domains that cannot be
+handled by concrete testing and SMT solvers.
+
+Much of the appeal of \TheSy as a new technique for theory
+exploration is its versatility in handling abstract values.
+Since concrete data elements are not required for the lemma vetting process,
+\TheSy can be extended to arbitrary families of types.
+Our experiments have shown that it successfully handles first-class functions without generating the function bodies, but based solely on their signatures.
+The next step would be to add support for refinement types~\cite{pldi91/freeman},
+and notably, dependent types.
+These were shown to be excellent tools in reasoning about the correctness of software~\cite{icfp14/vazou,book/cpdt,oopsla19/jad}.
+In particular, their combination --- dependent refinement types --- is most interesting because it exposes the tight interconnection between types and propositions.
+This makes it an ideal challenge for symbolic, constructive reasoning.
+
+A second pain point, exposed by our experiments, is handling case splits when comparing terms as well as by carrying out proofs.
+Testing technology has evolved several tools targeted specifically at handling conditional control flow in over 40 years of research in the field (\cite{cacm76/king}, with some commercial outcomes such as \cite{TaP2008:Tillman}).
+The appeal of applying a proof-theoretic approach is its ability to employ mathematical abstractions to describe classes of values.
+The current implementation of \TheSy essentially forks execution when splitting by case, copying the entire state.
+A more careful treatment can distinguish facts that are case-specific from global ones, making the search more focused and allowing deeper proof exploration.

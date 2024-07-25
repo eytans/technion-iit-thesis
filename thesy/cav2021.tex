@@ -1,0 +1,126 @@
+\RequirePackage{amsmath}  % llncs format emits warning otherwise
+\documentclass[runningheads]{llncs}
+
+%\documentclass[acmsmall]{acmart}\settopmatter{printfolios=true,printacmref=false}
+
+%\renewcommand\footnotetextcopyrightpermission[1]{}
+
+%% Journal information
+%% Supplied to authors by publisher for camera-ready submission;
+%% use defaults for review submission.
+% \acmJournal{PACMPL}
+% \acmVolume{1}
+% \acmNumber{OOPSLA} % CONF = POPL or ICFP or OOPSLA
+% \acmArticle{1}
+% \acmYear{2020}
+% \acmMonth{1}
+% \acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+% \startPage{1}
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission;
+%% use 'none' for review submission.
+%\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2018}           %% If different from \acmYear
+
+%% Bibliography style
+%\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+%\citestyle{acmauthoryear}   %% For author/year citations
+
+\bibliographystyle{plain}
+
+
+%\usepackage[utf8]{inputenc}
+%\usepackage[T1]{fontenc}
+\usepackage{cabin}  % sans-serif font
+
+\usepackage{amssymb}
+%\usepackage{amsmath}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{hyperref}
+\usepackage[normalem]{ulem}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage{xspace}
+\usepackage{multirow}
+\usepackage[rightcaption]{sidecap}
+\usepackage[normalem]{ulem} % for \sout
+\usepackage{enumitem}
+\usepackage{relsize}
+\usepackage[firstpage]{draftwatermark}
+\usepackage[misc]{ifsym}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows, positioning, fit, plotmarks}
+\usepackage{tikzsymbols}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+
+%\usepackage{mathspeak}
+\input{macros}
+
+%\fancyfoot{}
+\SetWatermarkText{\hspace*{5in}\raisebox{5.in}{\includegraphics[scale=0.8]{img/badges/aec-badge_f_a_r}}}
+
+\SetWatermarkAngle{0}
+
+\title{Theory Exploration Powered By Deductive Synthesis}
+%\author{Anonymous}
+%\institute{(double-blind submission)}
+
+\authorrunning{Eytan Singher and Shachar Itzhaky}
+
+%\begin{comment}
+\author{Eytan Singher\,\Letter \and
+    Shachar Itzhaky}
+\institute{Technion, Haifa, Israel\\ \email{\{eytan.s,shachari\}@cs.technion.ac.il}}
+%\end{comment}
+
+\begin{comment}  % From ACM format
+\author{Eytan Singher}
+\affiliation{
+  \institution{Technion}
+  \country{Israel}
+}
+\email{eytan.s@cs.technion.ac.il}
+\author{Shachar Itzhaky}
+\affiliation{
+  \institution{Technion}
+  \country{Israel}
+}
+\email{shachari@cs.technion.ac.il}
+\date{May 2020}
+\end{comment}
+
+\begin{document}
+
+\maketitle
+%\thispagestyle{empty}
+
+\input{00-abstract}
+
+\input{01-intro}
+\input{02-overview}
+\input{03-prelim}
+\input{04-technical}
+\input{05-results}
+%\input{06-results.old}
+\input{07-related}
+%\input{08-future}
+\input{09-conclusions}
+
+
+\clearpage
+
+\bibliography{bib}
+
+\end{document}

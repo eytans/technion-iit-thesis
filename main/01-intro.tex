@@ -1,0 +1,195 @@
+\chapter{Introduction}
+\label{chap:intro}
+
+% What is my story even?
+
+% Deductive reasoning
+% We have TheSy to create more deductions
+% We have colored e-graphs to better apply deductions in exploratory settings
+% We have a quick deductive prover as a proof of concept for better interactive verification. This is also somewhat exploratory for subproofs but we won't get there
+
+% Equality satuartion pov
+% Same as deductive but I can focus mainly on eqsat, so introduction will make more sense, and everything will be more focused
+% I will need to start with equality saturation move quickly to deductive reasoning.
+% Some background
+% Then I can go into different approaches done in reasoning tasks I am interested in, and their accopanying equality saturation technique.
+% Why is equality saturation succesful maybe quote.
+% My specific techniques? Contributions
+
+Deductive reasoning, a cornerstone of logical thought, forms the basis for many powerful techniques in automated reasoning systems. 
+At its core, deductive reasoning involves drawing logical conclusions from a set of premises, applying general principles to specific instances. 
+This approach has become instrumental in automatically proving properties of software systems, optimizing code, and discovering new mathematical truths.
+
+Automatic deductive reasoning is mostly used for software development and validation.
+As software systems have become increasingly complex, the importance of automated reasoning has grown significantly \cite{d2008survey}. 
+Methods of optimization and verification are more crucial than ever, as software is embedded in critical infrastructure, from financial systems to healthcare devices.
+Thus, automated reasoning techniques have been a center of attention for many years\footnote{But, attention is not all you need}. 
+One of the fundamental approaches in this field is term rewriting. 
+Term rewriting involves systematically replacing subterms of a formula with equivalent terms according to a set of rewrite rules. 
+For example, in arithmetic, we might have a rule that states $a + b - b \rightarrow a$ where $a$ and $b$ are arbitrary terms. 
+This rule would allow us to simplify expressions like $5 + (x\cdot y) - (x\cdot y)$ to just $5$.
+
+While powerful, term rewriting faces several challenges:
+\begin{enumerate}
+    \item Termination: It's not always clear whether the rewriting process will terminate, especially with complex rule sets.
+    \item Confluence: Even when termination is guaranteed, different rewriting sequences might lead to different normal forms, complicating reasoning about term equivalence.
+    \item Information loss: Once a rewrite step is taken, the original term is typically discarded, potentially losing valuable information for later reasoning steps.
+\end{enumerate}
+
+To address some of these issues, techniques like the Knuth-Bendix completion algorithm \cite{knuthbendixcompletion} have been developed. 
+This algorithm attempts to transform a set of equations into a confluent and terminating term rewriting system. 
+That is, using the rewrite system on two provably equal terms will result in both terminating with the same normal form.
+However, it doesn't fully solve the problem of information loss and can struggle with certain types of equations. 
+For example, the commutativity of addition, $x + y \rightarrow y + x$, poses challenges for the Knuth-Bendix completion algorithm. 
+If included directly as a rewrite rule, it can lead to non-termination \cite{kapur1985knuthintro}.
+
+Equality saturation, a relatively new deductive reasoning technique that has emerged as a promising solution to many of these challenges \cite{eqsat}. 
+It is based on e-graphs \cite{egg}, a data structure that can compactly represent a large set of equivalent terms.
+In this context, a term is a symbolic expression that represents a mathematical expression or computation, typically composed of variables, constants, and function symbols, such as  $f(x+2)$ and $3 \cdot y^2$.
+An easy way to think about e-graphs is as an extension of the union-find data structure to include congruence closure over terms.
+In an e-graph, each node (called an e-class) represents a set of terms that are known to be equal.
+Edges in the e-graph (somewhat confusingly called e-nodes) represent function applications.
+For example, if we know that $a = b$ and $f(a) = c$, an e-graph could represent the terms $\{ a, b, c, f(a), f(b) \}$ with two e-classes $\{ e1, e2 \}$ and four e-nodes: $e1  = {a, b}$, $e2 = {f(|e1|), c}$.
+Do note that $a$, $b$, and $c$ are treated as unary functions, and e-nodes are over e-classes, so we mark $|e1|$ to signify the parameter is the e-class $e1$.
+The compact representation is based on shared subterms, so in the worse case no subterms are shared and no compaction is achieved.
+However, an e-graph can also represent infinite expressions in a single e-class.
+Let's take for example $x$ and $x + 0$.
+Both will be in the same e-class $e$, but the e-node $|e| + 0$ is over any term represented by $e$, inductively leading to infinite terms.
+
+Equality saturation employs e-graphs to build a compact representation of all possible rewrites of a given expression. 
+Instead of applying rewrite rules sequentially and discarding intermediate results, equality saturation applies all possible rewrites simultaneously, storing the results in the e-graph. 
+This approach allows for a more comprehensive exploration of the solution space without committing to a particular sequence of rewrites. 
+The power of equality saturation has been demonstrated across various applications:
+
+\paragraph{Program Optimization} Equality saturation has, originally and in later work, been used to discover complex code transformations that significantly improve performance \cite{eqsat}.
+It's main advantage is the ability to choose global optimizations rather than local ones through classical heuristic rewriting.
+Another instance, the TENSAT superoptimizer, uses equality saturation to find optimized tensor graphs \cite{tensat} which is important for the recent surge in deep learning tools and applications.
+Similarly, the Herbie tool \cite{herbie} applies equality saturation achieving greatly improved accuracy of floating-point expressions.
+
+\paragraph{Program Verification and Theorem Proving}
+Equality saturation has also made significant strides in the domains of program verification and theorem proving. 
+TheSy \cite{thesy}, which is part of the contributions of this thesis, leverages equality saturation for theory exploration, automatically discovering and proving new lemmas in mathematical theories.
+In the realm of program analysis, the combination of abstract interpretation with equality saturation \cite{abstracteqsat} has shown promise in improving the precision and efficiency of static analysis tools. 
+Equality saturation has been employed in fuzz testing of compilers as well. 
+WASM Mutate \cite{arteaga2022wasm} to generate semantically equivalent mutations, aiding in testing and verification efforts of WASM compilers. 
+Furthermore, an issue with using equality saturation (and its inherently applied congruence closure) was that proof traces could be difficult to verify. 
+This is important, as usually verification systems like the Coq proof assistant \cite{Coq:manual} work on a small trusted core, and are often used to verify proofs from external tools \cite{armand2011modular, coqhammer}. 
+The "Small Proofs from Congruence Closure" technique \cite{flatt2022small} demonstrates how equality saturation can be used to generate compact proofs from e-graphs, bridging the gap for equality saturation to be used in automated reasoning systems.
+
+\paragraph{Program Synthesis} Equality saturation has proven to be particularly effective in program synthesis tasks due to its ability to compactly represent vast search spaces of potential programs.
+This compact representation allows for efficient exploration of numerous program variants simultaneously.
+For instance, the Babble synthesizer \cite{cao2023babble} leverages equality saturation to compress learned libraries of function, exploring a wide range of implementation choices in a single e-graph. 
+In the domain of rewrite rule inference Ruler \cite{ruler} uses equality saturation to automatically discover new term rewriting rules from a set of input-output examples, effectively synthesizing program transformations. 
+This approach has shown promise in automating the discovery of optimization rules for domain-specific languages. 
+Furthermore, in the field of computer-aided design (CAD), the Szalinski tool \cite{nandi2020synthesizing} uses e-graphs to represent and manipulate CAD programs, enabling the synthesis of more abstract, parametric CAD models.
+
+\bigskip
+
+Despite these successes, the full potential of equality saturation in deductive reasoning remains to be explored. 
+Several challenges persist:
+
+\begin{itemize}
+    \item While equality saturation is powerful for reasoning within a given theory, its effectiveness is limited to known equalities. Automatically discovering new theories or extending existing ones remains challenging.
+    \item Handling conditions efficiently in the e-graph structure is not straightforward, limiting the applicability of equality saturation in scenarios involving complex logical conditions.
+    \item Applicability for theorem provers is still an open problem. While rewriting systems were successfully employed in theorem provers, equality saturation has still not made a big footprint in the field.
+\end{itemize}
+
+This thesis aims to address these challenges and advance the field of deductive reasoning through novel applications and extensions of equality saturation. 
+
+% -------------- Thesy -------------------------
+
+\section{Expanding the Knowledge Base in Automated Reasoning}
+
+In the context of automated deductive reasoning, \emph{knowledge base} refers to the set of facts, axioms, lemmas, and theorems that a system can use to derive new conclusions \cite{amlenat1977automated, thesy}.
+For instance, in arithmetic reasoning, the knowledge base might include basic axioms like $x + y = y + x$ or more complex theorems like distribution of addition and multiplication $x * (y + z) = (x * y) + (x * z)$.
+
+Automatic deduction based on a given knowledge base will fail when missing an important axiom.
+For example, consider trying to find a proof for the equality $(y * 0) + x = x$.
+Of course, if the knowledge base contains that equality directly then it is easy, it also can be deduced with a combination of axioms, $\forall y. y * 0 = 0$ and $\forall x. 0 + x = x$, it would be provable in two steps.
+But, when the knowledge base would not contain relevant and matching axioms, the automatic deductive reasoning will fail.
+
+For that reason, scientists devote a lot of effort into developing theories \cite{qedatlarge}.
+To that end, the concept of automatically expanding this knowledge base, known as theory exploration, has been researched as well.
+Theory exploration can be defined as the task of automatically discovering new, interesting, and provably correct mathematical knowledge from a given set of axioms and definitions.
+Over the years, various approaches to theory exploration have been developed.
+
+Starting already in the 1970s, researchers have developed systems for potentially increasing the knowledge base by heuristically discovering concepts (e.g. a circle, or prime numbers) and conjectures about them. \cite{amlenat1977automated,buchanan1981dendral}.
+Generate-and-test methods, like the GRAPH THEORIST and HR systems \cite{epstein1988graphtheist,colton1999automatichr}, which generate conjectures, but then also attempt to prove them, thus improving usability.
+All of these works depend greatly on the representation (or embedding) of the concepts to create conjectures and new concepts, due to the, often infinite, search space of conjectures to consider.
+
+Newer methods attempt to deal with the search space explosion problem by using constrained synthesis and fast conjecture filtering, but do not attempt to recognize new concepts.
+IsaCoSy \ES{cite}, uses constraint-based synthesis to generate conjectures while trying to maintain completeness.
+Other systems use templates as a heuristic to constrain or simplify conjecture generation \ES{cite Scheme-Based Synthesis of Inductive Theories, Template-based Theory Exploration: Discovering Properties of Functional Programs by Testing, MathsAid}. 
+
+More recent, and especially successful, approaches rely on equality relations as a means to compress the search space.
+QuickSpec \ES{cite both papers} uses observable equality (equality over a finite set of examples) as an equality relation.
+However, observable equality suffers from two big issues.
+First, it requires concrete examples to run, which QuickSpec partially solves by relying on the property testing. 
+The second problem arises because observable equality may imply incorrect equalities leading to wrong conjectures, but further work, HipSpec \cite{hipster}, uses theorem provers on top of QuickSpec to circumvent correctness issues.
+Additional work went into extending support for conditionals, improving runtime using schemes, and infinite streams \ES{cite into the infinite and speculate and roughspec (Template-based Theory Exploration)}, but the basic limitations of creating examples, especially for conditional conjectures, such as conjectures about concepts, remain.
+
+Currently theory exploration still faces challenges when trying to fulfill all three goals at once:
+\begin{itemize}
+    \item Efficiency: Generating and testing a large number of potential theorems can be computationally expensive.
+    \item Relevance: Many generated statements, while true, may not be useful or interesting.
+    \item Completeness: Find all important theorems in a given domain. Especially challenging when considering conditional conjectures such as $sorted~list \implies min~list = head~list$
+\end{itemize}
+
+TheSy, one of the main contributions of this thesis, addresses these challenges by leveraging the power of equality saturation. 
+Unlike previous approaches that rely on concrete evaluation or testing, TheSy uses symbolic reasoning to efficiently explore the space of potential theorems.
+By representing a large space of equivalent expressions compactly in an e-graph, TheSy can simultaneously consider many potential lemmas. This approach allows for the discovery of non-obvious mathematical relationships that might be missed by more directed search strategies.
+Moreover, TheSy's integration with equality saturation provides a symbiotic relationship: as new lemmas are discovered, they can be immediately incorporated into the e-graph, potentially enabling the discovery of even more complex relationships. This continuous expansion of the knowledge base can significantly enhance the reasoning capabilities of automated systems, allowing them to tackle increasingly complex problems.
+In the following chapters, we will delve deeper into TheSy's architecture, algorithms, and its effectiveness in automated theory exploration, demonstrating how it advances the state of the art in expanding knowledge bases for automated reasoning systems.
+
+% -------------- Contributions -------------
+
+\section{Contributions and layout}
+
+We present three main contributions:
+
+\begin{enumerate}
+    \item TheSy: A symbolic theory exploration system that leverages equality saturation to automatically discover and prove new mathematical conjectures. TheSy demonstrates how equality saturation can be used not just for reasoning within theories, but for expanding our mathematical knowledge.
+    \item Colored E-graphs: An extension to the traditional e-graph structure that enables efficient handling of multiple assumptions, crucial for conditional reasoning. This contribution significantly expands the applicability of equality saturation to scenarios involving complex logical conditions.
+    \item An Equality Saturation Prover for Pure Type Systems: This work demonstrates the applicability of equality saturation techniques to higher-order logic reasoning, opening up new possibilities for automated reasoning in advanced mathematical domains.
+\end{enumerate}
+
+Through these contributions, we aim to enhance the power and flexibility of automated deductive reasoning tools, opening new avenues for program verification, optimization, and mathematical discovery. By addressing key limitations of current equality saturation techniques, this work pushes the boundaries of what can be achieved in automated reasoning, potentially impacting a wide range of applications in computer science and mathematics.
+
+As we delve deeper into each of these contributions in the subsequent chapters, we will explore how they build upon and extend the foundational concepts of equality saturation, and how they interact to create a more powerful and versatile framework for automated reasoning.
+
+This expanded introduction provides more context about deductive reasoning, term rewriting, and equality saturation. It explains key concepts in more detail and gives concrete examples, making it more accessible to readers who might be less familiar with the field. It also more clearly sets up the challenges that your work addresses and the significance of your contributions.
+
+Equality saturation, a relatively new deductive reasoning technique, has been successfully used in important tasks such as program optimization, program verification, and theorem proving. 
+Based on e-graphs, equality saturation sets itself apart from traditional term rewriting systems by its compressed and non-destructive nature.
+In the realm of program optimization, equality saturation was used for non-obvious code transformations that can significantly improved performance in various domains \ES{cite herbie, original eqsat, tensor optimizations, and others as are found}.
+For program verification and theorem proving, equality saturation provides a flexible framework for deriving new mathematical insights and searching for proofs \cite{ruler, thesy, guidedeqsat, abstracteqsat}.
+
+
+\begin{comment}
+Please note that the \texttt{iitthesis} class has several options when you use it, such as:
+\begin{itemize}
+\item \texttt{fullpageDraft} to avoid the margins necessary for proper binding when you make the final print
+\item \texttt{beforeDefense} makes the personal acknowledgements invisible; use this to print the copies you submit initially to the grad school for sending to the opponent panel, i.e. thesis readers (who shouldn't see those parts). For the final submission, after having successfully defended --- drop this option. 
+\item \texttt{noabbrevs} no notation \& abbreviations list will be included in the thesis.
+\end{itemize}
+
+\subsection*{Hebrew font}
+
+The \texttt{iitthesis} document class uses the David CLM font family for Hebrew text. CLM is a shorthand for ``Culmus'' (\texthebrew{קולמוס}) --- the name of a freely-available Hebrew font package. It may be bundled with your LaTeX distribution, or otherwise, must be available as system fonts. If you're missing the Culmus fonts, try adding an appropriate package from your LaTeX distribution or system distribution; alternatively, you might want to visit the Culmus project page at \url{http://culmus.sourceforge.net/} and download and install the fonts manually.    
+
+\subsection*{Setting thesis meta-data and publication information}
+
+The document class used to generate this document defines several commands you can use to set information  regarding your thesis, which is used in the title pages and elsewhere in the front matter.  Every (or almost every) command has an English and a Hebrew variant, with a \texttt{English} or \texttt{Hebrew} suffix to the command name. Examples:
+\begin{itemize}
+\item \verb|\titleHebrew|, \verb|\titleEnglish|
+\item \verb|\authorHebrew|, \verb|\authorEnglish|
+\item \verb|\JewishDateHebrew|, \verb|\JewishDateEnglish|
+\item \verb|\GregorianDateHebrew|, \verb|\GregorianDateEnglish|
+\item \verb|\publicationinfoHebrew|, \verb|\publicationinfoEnglish|
+\end{itemize}
+
+The file \texttt{misc/thesis-fields.tex} contains invocations of several such commands (some of them commented-out with \texttt{\%}), and some additional information about them.
+
+\end{comment}
+
+

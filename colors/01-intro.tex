@@ -1,0 +1,67 @@
+\section{Introduction}
+\label{colors:intro}
+
+% Context
+E-graphs are a versatile data structure that is used for various tasks of automated reasoning, including theorem proving and synthesis.
+E-graphs have been popularized in compiler optimizations thanks to their ability to support efficient \emph{rewrites} over a large set of terms, while keeping a compact representation of all possible rewrite outcomes.
+This mechanism is known as \emph{equality saturation}.
+It provides a powerful engine that allows a reasoner to generate all equality consequences of a set of known, universally quantified, equalities.
+Possible uses include selecting the best equivalent of an expression according to some desired metric, such as run-time efficiency~\cite{POPL2009:Tate}, size~\cite{DBLP:conf/fmcad/FlattCWTP22,DBLP:conf/fmcad/NotzliBNPRBT22}, or precision~\cite{herbie}
+(when used as a compilation phase)
+and a generalized form of unification, called e-unification, for application of inference steps (when used for proof search).
+
+In this work we focus on a stepping stone for what we address as \emph{exploratory reasoning}: a range of tasks including all the above optimization procedures, as well as theory exploration \cite{thesy}, rewrite rule inference \cite{ruler}, and proof search \cite{vampire,DBLP:conf/aplas/BrotherstonGP12,cycleq}.
+Exploratory reasoning, in general, can be thought of as any reasoning task navigating a large space of potential goals or sub-goals that need to be selected based on some criteria.
+Our motivating example comes from TheSy and Ruler, both of which are theory exploration systems based on e-graphs. 
+A theory exploration system attempts to both discover and prove mathematical properties from a set of definitions and known lemmas.
+Most of the difficulty in theory exploration comes from the generation and filtering of candidates, rather then from the proof procedure itself.
+TheSy does so by efficiently filtering a large set of potential conjectures using e-graphs for equality reasoning, and evaluating which should be potentially proved.
+While e-graphs are effective for equality reasoning \cite{egg}, handling branching, such as case splitting during proof search, do not have a common solution, and are treated ad-hoc.
+For example, a special type of node is introduced in \cite{POPL2009:Tate} to deal with loop conditions, while in \cite{coward2023automating} a special operator is introduced to reason on expressions under certain contexts, and \cite{thesy} creates full copies of the e-graph for each branch being explored.
+
+% Gap
+To illustrate this difficulty, we zoom in on an example from theory exploration.
+As an example scenario, consider trying to discover and prove lemmas on sorted lists:
+a library containing functions $\tlfind$, $\tissorted$, and $\tbinsearch$.
+We expect to discover lemmas involving these functions; one such lemma might be the property: $\tissorted\,l \rightarrow \tbinsearch\, l\,v = \tlfind\,l\,v$.
+State-of-the-art theory exploration systems~\cite{ITP2017:Johansson,ruler,thesy} have some enumeration strategy over expressions in order to discover candidates. 
+A challenge presents itself when some lemmas in the space require an assumption, in this case $\tissorted\,l$.
+When dealing with e-graphs,
+adding an assumption would \emph{globally}
+affect all terms involved in the enumeration, making it impossible to separate conclusions stemming from different assumptions.
+Because the system cannot know in advance which assumptions will become relevant for discovering equalities, it is required that it also generate and test multiple candidate assumptions.
+An immediate solution is to create one copy of the graph per assumption, but doing so can significantly increase the memory usage.
+Moreover, lemmas may depend on one another; for example, $\tissorted\,l \rightarrow \tbinsearch\, l\,v = \tlfind\,l\,v$ depends on transitivity of $\leq$ ($x\leq y \land y\leq z \rightarrow x\leq z$).
+Therefore, just trying the candidates one at a time would mean that the system would prematurely discard candidates depending on the order in which they are tested; alternatively, for each candidate that is validated and becomes a lemma, it would be forced to re-try all the previously failed attempts, which is highly costly.
+
+% Theory exploration systems based on random testing  (\todo{speculate, hipspec with conditions}) attempt to greedily discover
+
+% Innovation
+To overcome this difficulty, we propose an extension of the e-graph data structure.
+An e-graph naturally represents a congruence relation $\cong$, which is an equality relation over terms (with function applications), which  maintains $x \cong y \vdash f(x) \cong f(y)$.
+The congruence relation is maintained in the e-graph as a set of equivalence classes (e-classes), which can be merged as part of updating the underlying relation. 
+We extend the e-graph data structure into a \emph{Colored E-Graph} to maintain multiple congruence relations at once, where each relation is associated with a color.
+Our key observation is that each added assumption, can be treated as a new congruence relation, but is only a coarsening of the original relation. 
+The coarsening, then, can be represented as a set of additional merges of e-classes on top of the original e-graph.
+The main benefit is reducing memory consumption by re-using and sharing most of the e-classes between colors.
+Going back to the sorted list example, in the colored e-graph there will be a \cred relation for assuming $x \le y \land y \le z$, and a \cblue relation for assuming $\tissorted\,l$.
+Thanks to the size reduction, multiple relations can exist at once, and thus the lemma $\tissorted\,l \rightarrow \tbinsearch\, l\,v = \tlfind\,l\,v$ can be discovered after transitivity of $\leq$ is proven, but without dependency on the order of exploration.
+Colored e-graphs also support having a hierarchy between different colors, which can benefit from additional sharing of e-classes.
+For example, the \cred color representing $x \le y \land y \le z$ is itself a coarsening of some \cgreen color representing just the assumption $x \le y$.
+
+While the memory footprint for each color is smaller, maintaining the congruence relation and the data structure invariants becomes more challenging.
+To address this we present specialized data-structure modifications and evaluate them.
+%We also extend the colored e-graph's logic in several key ways, to support e-graph operations for all the colors.
+First, we set up a multi-level union-find where the lowest level corresponds to the root congruence.
+Second, we change how congruence closure is applied to the individual congruence relations while taking advantage of the sharing between each such relation and the root. 
+Lastly, we present a technique for efficient e-matching over all the relations at once.
+
+% Oh we are so good!
+\medskip
+Our contributions are:
+\begin{enumerate}[leftmargin=1.1em]
+    \item The observation that assumptions induce coarsened e-graphs that share much of the original structure. 
+    \item Algorithms for colored e-graphs operations.
+    \item Optimizations on top of the basic algorithms to significantly improve resource usage.
+    \item A colored e-graph implementation, \emph{Easter Egg}\footnote{\url{https://github.com/eytans/egg/tree/features/color_splits}} and an evaluation that shows an improvement factor in memory usage over the existing baseline, while maintaining similar run-time performance.
+\end{enumerate}

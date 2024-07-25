@@ -1,0 +1,16 @@
+\begin{abstract}
+This paper presents a symbolic method for automatic theorem generation based on deductive inference. 
+Many software verification and reasoning tasks require proving complex logical properties; 
+coping with this complexity is generally done by declaring and proving relevant sub-properties.
+This gives rise to the challenge of discovering useful sub-properties that can assist the automated proof process.
+This is known as the \emph{theory exploration} problem, and so far, predominant solutions that emerged rely on evaluation using concrete values.
+This limits the applicability of these theory exploration techniques to complex programs and~properties.
+
+In this work, we introduce a new symbolic technique for theory exploration, capable of (offline) generation of a library of lemmas from a base set of inductive data types and recursive definitions.
+Our approach introduces a new method for using abstraction to overcome the above limitations, combining it with deductive synthesis to reason about abstract values.
+Our implementation has shown to find more lemmas than prior art, avoiding redundant lemmas (in terms of provability), while being faster in most cases.
+This new abstraction-based theory exploration method is a step toward applying theory exploration to software verification and synthesis.
+
+\keywords{Theory Exploration  \and Synthesis
+    \and Automatic Theorem Proving.}
+\end{abstract}

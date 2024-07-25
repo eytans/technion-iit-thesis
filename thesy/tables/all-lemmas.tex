@@ -1,0 +1,182 @@
+\renewcommand\arraystretch{1.1}
+\begin{comment}
+\begin{tabular}{@{\hspace{3mm}}l|ll}
+$\Vocab$ & \multicolumn{2}{c}{Lemmas discovered} \\
+\hline
+$\trev ~ \cons ~ \snoc$
+  & $x \cons \trev~l_1 = \trev~(l_1 \snoc x)$
+  & $\trev~(\trev~l_1) = \trev~l_1$ \\
+\hline
+$\cons ~ \concat$ &
+    $ (l_1 \concat l_2) \concat l_3 = l_1 \concat (l_2 \concat l_3) $ \\
+\hline    
+$\cons ~ \concat ~ []$ &
+    $ l_1 \concat [] = l_1 $ \\
+\hline
+$\tfilter$ &
+    $ \tfilter~p~(\tfilter~p~l_1) = \tfilter~p~l_1 $
+  & $ \tfilter~p~(\tfilter~q~l_1) = \tfilter~q~(\tfilter~p~l_1) $ \\
+\hline
+$\trev ~ \cons ~ \snoc ~ \concat$ 
+  & $ \trev~(\trev~l_1) = l_1 $ \\
+  & $ \trev~(l_1 \snoc x) = x :: \trev~l_1 $
+  & $ \trev~(l_1 \concat l_2) = (\trev~l_2) \concat (\trev~l_1) $ \\
+\hline
+$0 ~ \tsucc ~ +$
+  & $ x + 0 = x $
+  & $ \tsucc~x = x + (\tsucc~0) $ \\
+  & $ \tsucc~x + y = x + \tsucc~y $
+  & $ (x + y) + z = x + (y + z) $ \\
+  & $ x + y = y + x $ \\
+\hline
+$\tfilter ~ \concat$
+  & $ \tfilter~p~(\tfilter~p~l_1) = \tfilter~p~l_1 $ 
+%  & $ \tfilter~p~(\tfilter~q~l_1) = \tfilter~q~(\tfilter~p~l_1) $ 
+  & $\tfilter~p~(l_1 \concat l_2) = \tfilter~p~l_1 \concat \tfilter~p~l_2 $ \\
+\hline
+$0 ~ + ~ \tfold ~ \tsum$
+  & $ \tfold~(+)~0~l_1 = \tsum~l_1 $
+  & $ \tfold~(+)~x~l_1 = x + \tsum~l_1 $ \\
+   % $ \tfold~(+)~x~l_1 = x + \tfold~(+)~0~l_1 $ \\
+   % $ x + \tsum~l_1 = x + \tfold~(+)~0~l_1 $
+\hline
+$\ttrue ~ \tforall$
+  & $ \tforall~l_1 = \tfold~(\land)~\ttrue~l_1 $
+  & $ \tforall~l_1 \land b = b \land \tfold~(\land)~\ttrue~l_1 $ \\
+$\land ~ \tfold$
+  & $ \tforall~l_1 \land b = \tfold~(\land)~b~l_1 $
+  & $ b \land \tfold~(\land)~\ttrue~l_1 = \tfold~(\land)~b~l_1 $ \\
+\hline
+$\tfalse ~ \texists$
+  & $ \tfold~(\lor)~\tfalse~l_1 = \texists~l_1 $
+  & $ \tfold~(\lor)~b~l_1 = b \lor \tfold~(\lor)~\tfalse~l_1 $ \\
+$\lor ~ \tfold$
+  & $ \tfold~(\lor)~b~l_1 = \texists~l_1 \lor b $
+  & $ b \lor \tfold~(\lor)~\tfalse~l_1 = \texists l_1 \lor b $ \\
+\hline
+$\tmap ~ \circ$
+  & $ \tmap~f~(\tmap~g~l_1) = \tmap~(f\circ g)~l_1$ \\
+\hline
+$0 ~ 1 ~ + ~ \trev ~ \snoc ~ \tlen$
+  & $ \tlen~(l_1 \snoc 1) = \tlen~(l_1 \snoc 0) $
+  & $ 1 + \tlen~l_1 = \tlen~(l_1\snoc x)$ \\
+  & $ \tlen~(\trev~l_1) = \tlen~l_1$
+  & $ \tlen~(l_1\snoc x) = \tlen~(l_1\snoc 0)$ \\
+  & $ \tlen~(l_1\snoc x) = \tlen~(l_1\snoc 1)$
+  & $ 1 + \tlen~l_1 = \tlen~(l_1\snoc y)$ \\
+\hline
+$+ ~ \concat ~ \tlen$
+  & $ \tlen~(l_1 \concat l_2) = \tlen~l_1 + \tlen~l_2 $ \\
+\hline
+$\tmap ~ \cons ~ \snoc ~ \trev$
+  & $ \tmap~f~(l_1 \concat l_2) = \tmap~f~l_1 \concat \tmap~f~l_2 $
+  & $ \trev~(\trev~l_1) = l_1 $ \\
+$\concat ~ \tfold$
+  & $ \trev~(l_1 \concat l_2) = \trev~l_2 \concat \trev~l_1 $
+  & $ \tfold~f~(\tfold~f~x~l_1)~l_2 = \tfold~f~x~(l_1\concat l_2) $ \\
+  & $ x \cons \trev~l_1 = \trev~(l_1 \snoc x) $ \\
+\hline
+$\tmap ~ \cons ~ \snoc ~ \trev$
+  & $ \tlen~(\tmap~f~l_1) = \tlen~l_1 $
+  & $ \trev~(\trev~l_1) = l_1 $ \\
+$\concat ~ \tfold ~ + ~ \tlen$  \\
+"stress test"
+  & $ \tmap~f~(l_1 \concat l_2) = \tmap~f~l_1 \concat \tmap~f~l_2 $
+  & $ \trev~(l_1 \concat l_2) = (\trev~l_2) \concat (\trev~l_1) $ \\
+  & $ x \cons \trev~l_1 = \trev~(l_1 \snoc x) $
+  & $ \tlen~(l_1 \concat l_2) = \tlen~l_1 + \tlen~l_2 $ \\
+  & $ \tfold~f~(\tfold~f~x~l_1)~l_2 = \tfold~f~x~(l_1\concat l_2) $ \\
+\hline
+\end{tabular}
+%
+% Up-to-date lemmas from execution logs
+\end{comment}
+\newcommand\twolines[2]{\renewcommand\arraystretch{1}\begin{array}{@{}l@{}}#1\\#2\end{array}}
+\begin{tabular}{@{\hspace{3mm}}l|ll}
+$\Vocab$ & \multicolumn{2}{c}{Lemmas discovered} \\
+\hline
+$0~\tsucc~+$
+  & $ x + 0 = x $
+  & $ \tsucc~x = x + (\tsucc~0) $ \\
+  & $ \tsucc~x + y = x + \tsucc~y $
+  & $ (x + y) + z = x + (y + z) $ \\
+  & $ x + y = y + x $ \\
+\hline
+$[]~\cons~\concat~\snoc$
+  & $l_1 = l_1 \concat {[]}$
+  & $l_1 \concat {(x \cons l_2)} = (l_1 \snoc x) \concat l_2$ \\
+  & $l_1 \concat {(l_2\snoc y)} = (l_1 \concat l_2) \snoc y$ 
+  & $l_1 \concat {(l_2 \concat l_3)} = (l_1 \concat l_2) \concat l_3$ \\
+\hline
+$\trev~\cons~\snoc$
+  & $x \cons \trev~l_1 = \trev~(l_1 \snoc x)$
+  & $\trev~(\trev~l_1) = \trev~l_1$ \\
+\hline
+$\trev~\snoc~\concat~\cons$
+  & $ \trev~(\trev~l_1) = l_1 $
+  & $ \trev~(l_1 \snoc x) = x :: \trev~l_1 $ \\
+  & $ \trev~(l_1 \concat l_2) = (\trev~l_2) \concat {(\trev~l_1)} $ \\
+\hline
+$\tfilter$
+  & $ \tfilter~p~(\tfilter~p~l_1) = \tfilter~p~l_1 $
+  & $ \tfilter~p~(\tfilter~q~l_1) = \tfilter~q~(\tfilter~p~l_1) $ \\
+\hline
+$\tfilter~\concat$
+  & $ \tfilter~p~(\tfilter~p~l_1) = \tfilter~p~l_1 $ 
+%  & $ \tfilter~p~(\tfilter~q~l_1) = \tfilter~q~(\tfilter~p~l_1) $   THIS WAS NOT FOUND DUE TO PLACEHOLDER BOUND, RIGHT?
+  & $\tfilter~p~(l_1 \concat l_2) = (\tfilter~p~l_1) \concat {(\tfilter~p~l_2)} $ \\
+\hline
+$0~\tsum~\tfold~+$
+  & $\tfold~(+)~0~l_1 = \tsum~l_1$ 
+  & $\tfold~(+)~x~l_1 = x + \tsum~l_1$ \\
+  & $\tfold~(+)~x~l_1 = x + \tfold~(+)~0~l_1$
+  & $x + \tsum~l_1 = x + \tfold~(+)~0~l_1$ \\
+\hline
+\multirow{2}{*}{$\twolines{\ttrue~\tforall}{\land~\tfold}$}
+  & $ \tforall~l_1 = \tfold~(\land)~\ttrue~l_1 $
+  & $ \tforall~l_1 \land b = b \land \tfold~(\land)~\ttrue~l_1 $ \\
+  & $ \tforall~l_1 \land b = \tfold~(\land)~b~l_1 $
+  & $ b \land \tfold~(\land)~\ttrue~l_1 = \tfold~(\land)~b~l_1 $ \\
+\hline
+\multirow{2}{*}{$\twolines{\tfalse~\texists}{\lor~\tfold}$}
+  & $ \tfold~(\lor)~\tfalse~l_1 = \texists~l_1 $
+  & $ \tfold~(\lor)~b~l_1 = b \lor \tfold~(\lor)~\tfalse~l_1 $ \\
+  & $ \tfold~(\lor)~b~l_1 = \texists~l_1 \lor b $
+  & $ b \lor \tfold~(\lor)~\tfalse~l_1 = \texists~l_1 \lor b $ \\
+\hline
+$\tmap~\circ$
+  & $\tmap~g~(\tmap~f~l_1) = \tmap~(g \circ f)~l_1$ \\
+\hline
+$0~1~+~\trev~\snoc~\tlen$
+% Ther ewas a bug in the code. Manual Fix
+%   \tlen(\snoc(l_1, 1)) == \tlen(\snoc(l_1, 0))
+%   +(1, \tlen(l_1)) == \tlen(\snoc(l_1, y))
+%   \tlen(\trev(l_1)) == \tlen(l_1)
+%   +(1, \tlen(l_1)) == \tlen(\snoc(l_1, 0))
+%   \tlen(\snoc(l_1, x)) == \tlen(\snoc(l_1, 1))
+%   \tlen(\snoc(l_1, x)) == \tlen(\snoc(l_1, 0))
+%   \tlen(\snoc(l_1, 0)) == \tlen(\snoc(l_1, y))
+%   \tlen(\snoc(l_1, 1)) == \tlen(\snoc(l_1, y))
+%   +(1, \tlen(l_1)) == \tlen(\snoc(l_1, 1))
+%   \tlen(\snoc(l_1, x)) == +(1, \tlen(l_1))
+ & $\tlen~l = \tlen~(\trev~l)$
+ & $1 + (\tlen~l) = \tlen~(l \snoc x)$ \\
+\hline
+$+~\concat~\tlen$
+  & $ \tlen~(l_1 \concat l_2) = \tlen~l_1 + \tlen~l_2 $ \\
+\hline
+\multirow{2}{*}{$\twolines{\trev~\tswitch~\ttreeflat}{\ttreemap~\tid}$}
+  &  $ t = \ttreemap~\tid~t $
+  & $  \tswitch~(\tswitch~t) = t $ \\
+  & $  \ttreemap~g~(\tswitch~t) = \tswitch~(\ttreemap~g~t) $ \\
+\hline
+\multirow{2}{*}{$\twolines{\tmap~\cons~\snoc~\concat}{\tfold~\trev}$}
+  & $ \tmap~f~(l_1~\concat~l_2) = (\tmap~f~l_1)~\concat~(\tmap~ f~l_2)$
+  & $ \trev~\trev~l = l$ \\
+  & $ \tmap~f~(\trev~l) = \trev~(\tmap~f~l)$
+  & $ \trev~(l_1 \concat l_2) = (\trev~l_2) \concat (\trev~l_1)$ \\
+  & $ \tfold~g~(\tfold~g~x~l_1)~l_2 = \tfold~g~x~(l_1 \concat l_2) $
+  & $ x \cons {(\trev~l_1)} = \trev~(l_1\snoc x) $ \\
+\hline
+\end{tabular} 
+
