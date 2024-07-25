@@ -118,11 +118,11 @@ Generate-and-test methods, like the GRAPH THEORIST and HR systems \cite{epstein1
 All of these works depend greatly on the representation (or embedding) of the concepts to create conjectures and new concepts, due to the, often infinite, search space of conjectures to consider.
 
 Newer methods attempt to deal with the search space explosion problem by using constrained synthesis and fast conjecture filtering, but do not attempt to recognize new concepts.
-IsaCoSy \ES{cite}, uses constraint-based synthesis to generate conjectures while trying to maintain completeness.
-Other systems use templates as a heuristic to constrain or simplify conjecture generation \ES{cite Scheme-Based Synthesis of Inductive Theories, Template-based Theory Exploration: Discovering Properties of Functional Programs by Testing, MathsAid}. 
+IsaCoSy \cite{JAR2010:Johanssonisacosy}, uses constraint-based synthesis to generate conjectures while trying to maintain completeness.
+Other systems use templates as a heuristic to constrain or simplify conjecture generation \cite{einarsdottir2020template,ESA2012:Montanoschemebased,mccasland2006mathsaid}. 
 
 More recent, and especially successful, approaches rely on equality relations as a means to compress the search space.
-QuickSpec \ES{cite both papers} uses observable equality (equality over a finite set of examples) as an equality relation.
+QuickSpec \cite{} uses observable equality (equality over a finite set of examples) as an equality relation.
 However, observable equality suffers from two big issues.
 First, it requires concrete examples to run, which QuickSpec partially solves by relying on the property testing. 
 The second problem arises because observable equality may imply incorrect equalities leading to wrong conjectures, but further work, HipSpec \cite{hipster}, uses theorem provers on top of QuickSpec to circumvent correctness issues.
