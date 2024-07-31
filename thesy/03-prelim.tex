@@ -1,10 +1,3 @@
-\section{Preliminaries}
-This work relies heavily on term rewriting techniques, which is employed across multiple phases of the exploration.
-%Rewriting serves as an equality checking mechanism for symbolic values, using a novel approach, \emph{symbolic observational equivalence}.
-%It is also used for eliminating redundancies in produced theories, where previously found (and proven) lemmas are used to filter out conjectures that follow from them trivially.
-%The exploration method includes an inductive prover, applied on the conjectures found. This prover is also based on term rewriting, where  rewriting is used to establish the induction step through congruence closure reasoning.
-Term rewriting is implemented efficiently using equality graphs (e-graphs).
-In this section, we present some minimal background of both, which will be relevant for the exploration procedure described later.
 
 \subsection{Term Rewriting Systems}
 \label{prelim:term-rewriting}
@@ -53,38 +46,6 @@ Under the assumption that all rewrite rules in $\RewriteSys$ are semantics prese
 However, since $\Lang$ may be infinite, it is essentially impossible to compute $\TRewriteSysRelationSymbol\!$.
 Any algorithm can only explore a finite subset $\Terms \subseteq \Lang$, and in turn,
 construct a subset of $\TRewriteSysRelationSymbol\!$.
-
-\begin{comment}
-\begin{definition}\label{screening:rw-limited-equiv}
-Given a rewrite rule group $G_\Rewrite$ and a set of terms from a language $\Terms \subseteq \Lang$, we define a relation $\TLRewriteSysRelation{}{} \eqdef {\TRewriteSysRelation{}{}\!} \cap {\left(\Terms \times \Terms \right)}$
-\end{definition}
-
-Even $\TLRewriteSysRelation{}{}$ is too hard to compute, since for $t_1,t_2\in\Terms$ satisfying
-$\RewriteRelation{t_1}{t_2}$, the path between them may include terms from $\Lang\setminus\Terms$.
-Even if there exists a path that is properly in $\Terms$, it may be very long (worst case $|\Terms|$).
-We therefore define the \emph{rewrite search space} as
-
-%\ES{But we can go out of terms no? lets say zero is not in vocab but is in the definition of plus}
-%\SI{I fixed this}%
-\begin{equation}
-    \TRewriteSysRelationBounded{}{}{d} \,=~
-    \left({\RewriteRewriteSysRelation{}{}}\right)^{\leq d}
-     \cap~ {(\Terms \times \Terms)}
-\end{equation}
-
-Where $R^{\leq d}=\bigcup_{0\leq i\leq d}R^i$.
-
-\medskip
-
-Notice that $t_1 \TRewriteSysRelationBounded{}{}{d}\!\! t_2$ does not essentially mean that there exists
-a path of rewrites 
-$\ARewriteRewriteSysRelation{t_1}{\ARewriteRewriteSysRelation{t_1'}{\cdots}\ARewriteRewriteSysRelation{}{t_2}}$ 
-of length $\leq d$.
-This is because $\ARewriteRewriteSysRelation{}{}$ itself may not be symmetric.
-It is not even necessarily the case that there exists a common term $t_3$ such that both $t_1$ and
-$t_2$ rewrite to $t_3$; the direction of rewrites may interleave arbitrarily in 
-$\TRewriteSysRelationBounded{}{}{d}$.
-\end{comment}
 
 \subsection{Compact Representation Using Equality Graphs}
 \label{screening:representation}

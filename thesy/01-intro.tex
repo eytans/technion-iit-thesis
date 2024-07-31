@@ -117,7 +117,7 @@ This presents an obstacle towards scaling the approach to real software librarie
 interacts badly with deeply nested types} [...] \textit{will generate extremely large test data.}''~\cite{JFP2017:Smallbonequickspec2}
 
 Following are two example scenarios that attempt to represent cases from software systems where structured data types and complicated APIs exist:
-(i)~A series of tree data-types $T_i$ where each $T_i$ is a tree of height i with i children of type $T_{i-1}$, and the base case is an empty tree.
+(i)~A series of tree data-types $T_i$ where each $T_i$ is a tree of height $i$ with $i$ children of type $T_{i-1}$, and the base case is an empty tree.
 Creating concrete examples for $T_i$ will be resource expensive, as each tree has $O(i!)$ nodes, and each node requires a value.
 (ii)~An ADT (Algebraic Data Type) $A$ with multiple fields where each can contain a large amount of text or other ADTs, and a function over $A$ that only accesses one of the fields.
 Even if evaluating the function is fast, fully creating $A$ is expensive and will impact the theory exploration run-time.

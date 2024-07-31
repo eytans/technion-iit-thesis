@@ -1,149 +1,146 @@
-\section{Algorithms Pseudo Code}
+\chapter{Algorithms Pseudo Code}
 \label{app:algorithms}
 
 Colored e-graphs introduce a few algorithmic changes to the operations of a normal e-graph.
 Here we present pseudo code for the important changes presented in the paper.
-\autoref{functional:colored_machine} presents the changes being made to the e-matching abstract machine to support \emph{unoptimized} colored e-matching as presented in \autoref{functional}.
+Algorithms \ref{alg:compare} and \ref{alg:colored_jump} present the changes being made to the e-matching abstract machine to support \emph{unoptimized} colored e-matching as presented in \autoref{colors:functional}.
 
 \begin{algorithm}
-\caption{ \label{functional:colored_machine}
-Instructions: compare and colored\_jump}
-\begin{algorithmic}[1]
-
-\Function{compare}{$i, j$}
-    \If{$\tfind(\tcolor, \treg[i]) \neq \tfind(\tcolor, \treg[j])$}
-        \State \textbf{backtrack}
-    \EndIf
-\EndFunction
-\\
-\Function{colored\_jump}{$i$}
-    \State $siblings \gets \{e | e \in E \land e \equiv_{\tcolor} eclass\}$
-    \For{$sibling$ in $siblings$}
-        \State $\treg[i] = sibling$
-        \State $bs$.push(current\_state)
-    \EndFor
-    \State \textbf{backtrack}
-\EndFunction
-
+\caption{Function: compare}
+\label{alg:compare}
+\begin{algorithmic}
+\STATE \textbf{Input:} $i$, $j$
+\IF{$find(color, reg[i]) \neq find(color, reg[j])$}
+    \STATE \textbf{backtrack}
+\ENDIF
 \end{algorithmic}
 \end{algorithm}
 
-\begin{comment}
-Formalize the colored-rebuild algorithm
-This should include an algorithmic description of normal rebuild
-Then we would use functions to use the same algorithm for colored rebuild.
-The main concerns that change are:
-1. Collecting all the parents
-2. Updating the memo
-\end{comment}
+\begin{algorithm}
+\caption{Function: colored\_jump}
+\label{alg:colored_jump}
+\begin{algorithmic}
+\STATE \textbf{Input:} $i$
+\STATE $siblings \gets \{e | e \in E \land e \equiv_{color} eclass\}$
+\FOR{$sibling$ in $siblings$}
+    \STATE $reg[i] = sibling$
+    \STATE $bs$.push(current\_state)
+\ENDFOR
+\STATE \textbf{backtrack}
+\end{algorithmic}
+\end{algorithm}
 
-The rebuilding algorithm is also updated to accommodate for colored e-graphs in \autoref{functional}, and the pseudo code in addition to some explanations is presented here.
+The rebuilding algorithm is also updated to accommodate for colored e-graphs in \autoref{colors:functional}.
 We update the auxiliary function \textsc{repair} to work on colored e-classes,
-and introduce two new helper functions: $\textsc{collect\_parents}$ and $\textsc{update\_hashcons}$, as presented in \autoref{functional:repair}.
+and introduce two new helper functions: $\textsc{collect\_parents}$ and $\textsc{update\_hashcons}$, as presented in Algorithms \ref{alg:rebuild}, \ref{alg:repair}, \ref{alg:update_hashcons}, and \ref{alg:collect_parents}.
 $\textsc{collect\_parents}$ extract the parents of a colored e-class by combining the sets of parents of all the (root) e-classes contained therein.
 $\textsc{update\_hashcons}$ is used to make sure that the hashcons entries are in canonical forms. It was already a part of \textsc{repair} in egg;
 it is only repeated here to point out that it
 only updates the hashcons for the root color,
 since no canonization is required for colored layers.    
 
-
-\begin{algorithm}[t]
-\caption{\label{functional:repair}
-    Colored Rebuilding}
-\begin{algorithmic}[1]
-\Function{rebuild}{}
-\For{$\mathit{color}$ in $\mathit{self.colors}$}
-    \While{$\mathit{self.worklist(color).len()} > 0$}
-            \LeftComment[1.5em]{empty the worklist into a local variable}
-            \State $todo \gets \Call{take}{self.worklist(color)}$
-            \LeftComment{canonicalize and deduplicate the eclass refs to save calls to repair}
-            \State $todo \gets \{ self.find(color, eclass) \mid eclass \in todo \}$
-            \For{each $eclass$ in $todo$}
-                \State $\Call{self.repair}{color, eclass}$
-            \EndFor
-        \EndWhile
-    \EndFor
-\EndFunction
-\\
-\Function{repair}{$color, eclass$}
-    \State $parents \gets \Call{collect\_parents}{color, eclass}$
-    \State $\Call{update\_hashcons}{color, parents}$
-    \LeftComment{deduplicate the parents; note that equal parents get merged and put on the worklist}
-    \State $new\_parents \gets \{\}$
-    \For{each $(p\_node, p\_eclass)$ in $parents$}
-        \State $p\_node \gets self.canonicalize(color, p\_node)$
-        \If{$p\_node$ is in $new\_parents$}
-            \State $self.merge(color, p\_eclass, new\_parents[p\_node])$
-            \State $new\_parents[p\_node] \gets self.find(color, p\_eclass)$
-        \EndIf
-    \EndFor
-    \If{$color = \croot$}
-        \State $eclass.parents \gets new\_parents$
-    \EndIf
-\EndFunction
+\begin{algorithm}
+\caption{Function: rebuild}
+\label{alg:rebuild}
+\begin{algorithmic}
+\FOR{$color$ in $self.colors$}
+    \WHILE{$self.worklist(color).len() > 0$}
+        \STATE $todo \gets$ TAKE($self.worklist(color)$)
+        \STATE $todo \gets \{ self.find(color, eclass) | eclass \in todo \}$
+        \FOR{each $eclass$ in $todo$}
+            \STATE CALL $self.repair(color, eclass)$
+        \ENDFOR
+    \ENDWHILE
+\ENDFOR
 \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}[t]
-\caption{\label{functional:repair-aux}
-    Colored Rebuilding (auxiliary methods)}
-\begin{algorithmic}[1]
-\Function{update\_hashcons}{$color, parents$}
-    \If{$color = \croot$}
-    \For{each $(p\_node, p\_eclass)$ in $parents$}
-        \State $self.hashcons.remove(p\_node)$
-        \State $p\_node \gets self.canonicalize(color, p\_node)$
-        \State $self.hashcons[p\_node] \gets self.find(color, p\_eclass)$
-    \EndFor
-    \EndIf
-\EndFunction
-\\
-\Function{collect\_parents}{$color, eclass$}
-    \State $all\_parents \gets \emptyset$ \Comment{Initialize an empty set for parents}
-    \State $relevant\_eclasses \gets \{e \mid e \in E \land e \equiv_{color} eclass\}$
-    \For{$e$ in $relevant\_eclasses$}
-        \State $all\_parents \gets all\_parents \cup e.parents$ \Comment{Add parents of e to the set}
-    \EndFor
-    \State \Return $all\_parents$
-\EndFunction
+\begin{algorithm}
+\caption{Function: repair}
+\label{alg:repair}
+\begin{algorithmic}
+\STATE \textbf{Input:} $color$, $eclass$
+\STATE $parents \gets$ CALL collect\_parents($color, eclass$)
+\STATE CALL update\_hashcons($color, parents$)
+\STATE $new\_parents \gets \{\}$
+\FOR{each $(p\_node, p\_eclass)$ in $parents$}
+    \STATE $p\_node \gets self.canonicalize(color, p\_node)$
+    \IF{$p\_node$ is in $new\_parents$}
+        \STATE $self.merge(color, p\_eclass, new\_parents[p\_node])$
+        \STATE $new\_parents[p\_node] \gets self.find(color, p\_eclass)$
+    \ENDIF
+\ENDFOR
+\IF{$color = root$}
+    \STATE $eclass.parents \gets new\_parents$
+\ENDIF
 \end{algorithmic}
 \end{algorithm}
 
-The pseudo code for the optimized e-matching instructions that were presented in \autoref{optimizations} are presented in \autoref{opt:colored_machine}.
+\begin{algorithm}
+\caption{Function: update\_hashcons}
+\label{alg:update_hashcons}
+\begin{algorithmic}
+\STATE \textbf{Input:} $color$, $parents$
+\IF{$color = root$}
+\FOR{each $(p\_node, p\_eclass)$ in $parents$}
+    \STATE $self.hashcons.remove(p\_node)$
+    \STATE $p\_node \gets self.canonicalize(color, p\_node)$
+    \STATE $self.hashcons[p\_node] \gets self.find(color, p\_eclass)$
+\ENDFOR
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
 
-\begin{algorithm}[t]
-\caption{ \label{opt:colored_machine}
-Instructions: optimized compare and colored\_jump}
-\begin{algorithmic}[1]
+\begin{algorithm}
+\caption{Function: collect\_parents}
+\label{alg:collect_parents}
+\begin{algorithmic}
+\STATE \textbf{Input:} $color$, $eclass$
+\STATE $all\_parents \gets \emptyset$
+\STATE $relevant\_eclasses \gets \{e | e \in E \land e \equiv_{color} eclass\}$
+\FOR{$e$ in $relevant\_eclasses$}
+    \STATE $all\_parents \gets all\_parents \cup e.parents$
+\ENDFOR
+\STATE return $all\_parents$
+\end{algorithmic}
+\end{algorithm}
 
-\Function{compare'}{$i, j$}
-    \If{$find(color, reg[i]) \neq find(color, reg[j])$}
-        \State $descendants \gets \{ c ~|~ color \in p^+(c) \land reg[i] \equiv_c reg[j] \}$
-        \State $minimal \gets \{ c ~|~ c 
-        \in descendants \land \lnot \exists c' \in descendants.~c' \in p^+(c) \}$
-        \For{$c$ in $minimal$}
-            \State $color = c$
-            \State $bs$.push(current\_state)
-        \EndFor
-        \State \textbf{backtrack}
-    \EndIf
-\EndFunction
-\\
-\Function{colored\_jump'}{$i$}
-    \State $siblings \gets \{e \mid e \in E \land e \equiv_{color} eclass\}$
-    \For{$sibling$ in $siblings$}
-        \State $\treg[i] = sibling$
-        \State $bs$.push(current\_state)
-    \EndFor
-    \State $\tdescendants \gets \{ (c, e) ~|~ color \in p^+(c) \land reg[i] \equiv_c e \land e \notin siblings \}$
-    \State $\tminimal \gets \{ (c, e) ~|~ (c, e) \in \tdescendants \land \lnot \exists (c', e') \in \tdescendants. (c' \in p^+(c) \land e' \equiv_c' e) \}$
-    \For{$(c,e)$ in $\tminimal$}
-        \State $\tcolor = c$
-        \State $\treg[i] = e$
-        \State $bs$.push(current\_state)
-    \EndFor
-    \State \textbf{backtrack}
-\EndFunction
+The pseudo code for the optimized e-matching instructions that were presented in \autoref{colors:optimizations} are presented in Algorithms \ref{alg:compare_optimized} and \ref{alg:colored_jump_optimized}.
 
+\begin{algorithm}
+\caption{Function: compare' (optimized)}
+\label{alg:compare_optimized}
+\begin{algorithmic}
+\STATE \textbf{Input:} $i$, $j$
+\IF{$find(color, reg[i]) \neq find(color, reg[j])$}
+    \STATE $descendants \gets \{ c | color \in p^+(c) \land reg[i] \equiv_c reg[j] \}$
+    \STATE $minimal \gets \{ c | c \in descendants \land \lnot \exists c' \in descendants. c' \in p^+(c) \}$
+    \FOR{$c$ in $minimal$}
+        \STATE $color = c$
+        \STATE $bs$.push(current\_state)
+    \ENDFOR
+    \STATE \textbf{backtrack}
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Function: colored\_jump' (optimized)}
+\label{alg:colored_jump_optimized}
+\begin{algorithmic}
+\STATE \textbf{Input:} $i$
+\STATE $siblings \gets \{e | e \in E \land e \equiv_{color} eclass\}$
+\FOR{$sibling$ in $siblings$}
+    \STATE $reg[i] = sibling$
+    \STATE $bs$.push(current\_state)
+\ENDFOR
+\STATE $descendants \gets \{ (c, e) | color \in p^+(c) \land reg[i] \equiv_c e \land e \notin siblings \}$
+\STATE $minimal \gets \{ (c, e) | (c, e) \in descendants \land \lnot \exists (c', e') \in descendants. (c' \in p^+(c) \land e' \equiv_c' e) \}$
+\FOR{$(c,e)$ in $minimal$}
+    \STATE $color = c$
+    \STATE $reg[i] = e$
+    \STATE $bs$.push(current\_state)
+\ENDFOR
+\STATE \textbf{backtrack}
 \end{algorithmic}
 \end{algorithm}
