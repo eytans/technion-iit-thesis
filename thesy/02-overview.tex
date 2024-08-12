@@ -131,7 +131,7 @@ l_1 \,{\concat}\, (l_2 \,{\concat}~ l_3) = (l_1 \,{\concat}~ l_2) \,{\concat}\, 
 \]
 
 As briefly mentioned, our system design relies on congruence closure-based reasoning over universally quantified first-order formulas with uninterpreted functions.
-Congruence closure is weak but fast and constitutes one of the core procedures in SMT solvers~\cite{JACM1980:Nelson,IC2007:Nieuwenhuis}.
+Congruence closure is weak but fast and constitutes one of the core procedures in SMT solvers~\cite{egraphsnelson1980fast,IC2007:Nieuwenhuis}.
 On top of that, universally-quantified assumptions~\cite{TACAS2017:Barbosa} are handled by formulating them as rewrite rules and applying some depth-bounded term rewriting as described in \autoref{prelim:term-rewriting}.
 Additionally, \TheSy implements a simple case splitting mechanism that enables reasoning on conditional expressions.
 Notably, this procedure \emph{cannot} reason about recursive definitions since such reasoning routinely requires the use of induction.
