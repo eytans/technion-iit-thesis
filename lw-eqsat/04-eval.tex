@@ -1,0 +1,16 @@
+\section{Evaluation}
+\label{les:eval}
+
+
+
+\subsection{Implementation Optimizations}
+
+% TODO: add about the equality  conditions can be simplified by equality
+Equality in Rewrite Rules: LES offers two modes for handling equalities in rewrite rule conclusions. In the "fast" mode, each equality generates two rewrite rules, one for each direction. In the more powerful "generative" mode, applicable when preconditions bind all free variables, a single rule is created that concludes both sides of the equality when preconditions are met. This latter mode is particularly effective in generating terms necessary for proof discovery, such as applying commutativity of addition given only the knowledge that two terms are natural numbers.
+These refinements allow LES to capture and reason about subtle logical relationships that might be lost in a more naive translation. The HasProof operator, in particular, enables LES to distinguish between the existence of a proposition and the existence of its proof, a crucial distinction in many Coq proofs.
+
+To ensure practical applicability, LES incorporates several key optimizations:
+Constant Axiom Filtering: Large constant axioms are filtered based on size before addition to the e-graph. This prevents size blowup from single, expansive axioms (e.g., 100 + 1 = 101) that could lead to numerous spurious matches and significantly slow down the proving process.
+Parallel E-matching: LES implements parallel e-matching in the underlying e-graph library (egg). Given that e-matching is typically the most time-consuming operation in equality saturation, this parallelization can dramatically reduce overall runtime.
+Rewrite Rule Search Limitation: To prevent potentially infinite or excessively long searches, LES imposes a limit on the number of terms each rewrite rule can explore before giving up. While this might cause some proofs to fail, it is crucial for preventing pathological cases where bad rewrites dominate the computation time as the e-graph grows.
+These optimizations collectively enable LES to handle a wider range of problems efficiently, making it more suitable for integration into interactive proving workflows where responsiveness is key.

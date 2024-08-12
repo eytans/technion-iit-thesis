@@ -8,21 +8,17 @@
 %   Forall imply in axioms and goals
 %   Equality in axioms and goals
 %   HasProof special stuff
-
-% Parallel Search
-% Equality "Generative" Rules
 % Translation to either Consts in e-graph or Rewrite rules
-% Don't add big stuff to e-graph
 
 The Lightweight Equality Saturation (LES) prover is designed as an efficient, automated reasoning tool for integration with the Coq proof assistant. 
-At its core, LES operates on a workflow that transforms a problem specification in איק TPTP format \ES{cite tptp}, representing a Coq environment $\Gamma$ and a conjecture $c$, into an e-graph $\mathcal{E}$ and a set of rewrite rules $\Re$.
+At its core, LES operates on a workflow that transforms a problem specification in the TPTP format \cite{sutcliffe2017tptp}, representing a Coq environment $\Gamma_{tptp}$ and a conjecture $c$, into an e-graph $\mathcal{G}$ and a set of rewrite rules $\Re$.
 An emphasis is put on managing the size of the e-graph during translation, and optimizing the application of rewrite rules, to keep it suitable for integration into interactive proving workflows.
 
 \subsection{Intermediate Representation}
 
 LES's translation occurs through an intermediate representation (IR) to capture essential logical structures from the Calculus of Inductive Constructions.
-Specifically, the structures of Imply, Forall, Equality, and Props are dealt with in a special manner during translation.
-Although using this IR is possible for most first order encodings, only Pure Type System with separation of Prop from Set (see \autoref{lweqsat:background} for more information) can fully take advantage of this transformation, due to special treatment of Props.
+Specifically, the structures of imply, forall, equality, and propositions are dealt with in a special manner during translation.
+Although using this IR is possible for most first order encodings, only Pure Type System with separation of Prop from Set (see \autoref{lweqsat:background} for more information) can fully take advantage of this transformation, due to special treatment of propositions.
 
 \begin{definition}[Intermediate Representation (IR)]
 \label{les:ir_def}
@@ -30,45 +26,195 @@ The IR is defined inductively as follows:
 \begin{alignat*}{3}
 \text{IR} ::= \quad & \forall x. \varphi && \quad\text{(Universal Quantification)} \\
              & \exists x. \varphi && \quad\text{(Existential Quantification)} \\
-             & \text{HasProof}(\varphi) && \quad\text{(Proof Existence)} \\
+             & \text{Prop}(\varphi) && \quad\text{(The CIC type Prop)} \\
+             & HasProof(\varphi) && \quad\text{(Proof Existence)} \\
              & f(t_1, \ldots, t_n) && \quad\text{(Function Application)} \\
              & x && \quad\text{(Variable)} \\
              & \varphi \implies \psi && \quad\text{(Implication)} \\
              & t_1 = t_2 && \quad\text{(Equality)} \\
              & \varphi \iff \psi && \quad\text{(IFF)}
 \end{alignat*}
-where $x$ is a variable, $\varphi$ and $\psi$ are IR terms, $f$ is a function symbol, and $t_1, \ldots, t_n$ are IR terms.
+Where $x$ is a variable, $\varphi$ and $\psi$ are IR terms, $f$ is a function symbol, and $t_1, \ldots, t_n$ are IR terms.
+Note that while $t_i$, $\varphi$, and $\psi$ are all IR terms, usually $\varphi$ and $\psi$ will represent a Prop and $t_i$ a term from Set.
 \end{definition}
 
-The first step in LES's operation is the decompilation of the input TPTP file into the IR (see \autoref{les:ir_def}).
-During CoqHammer's translation to first-order logic, due to some optimizations, CoqHammer often treats $a~||~b~:~Prop$ as equivalent to $(a:~Prop)~bool_or~(b:~Prop)$, which can lead to incorrect reasoning in certain contexts. 
-LES's decompilation process carefully distinguishes these cases, maintaining the integrity of the original logical structure.
-This refined allows for more precise reasoning in later stages, particularly when dealing with higher-order concepts that are common in Coq proofs but challenging to represent in first-order logic.
+The first step in LES's operation is the translation of $\Gamma_{tptp}$ into a similar environement of formulas, but in it's own IR (see \autoref{les:ir_def}) $\Gamma_{IR}$ (we will use just $\Gamma$ for $\Gamma_{IR}$ from now on).
+Most of the translation is straight forward, as formulas in $\Gamma_{tptp}$ have the similar constructs such as equality and imply, and they will be translated into the IR directly, otherwise they will be treated as uninterpreted functions. 
+But, LES also have special treatment for proposition detection, to correctly create Prop statements which are not part of regular first order logic, and thus are not in the TPTP format.
+Note, the $HasProof$ operator itself is not created at this stage, rather it is part of the encoding phases that we expand on in \autoref{translation:les:encoding}.
 
-\subsection{Encoding to E-graph and Rewrite Rules}
+Normally first order solvers, such as z3, vampire, and cvc4, have some built in semantics for first order logic constructs.
+They will deal with $and$, $\forall$, $\exists$ and etc' using the built in processes they have as solvers.
+LES, on the other hand, does not use built in runtime semantics. Rather, it translates the environment $\Gamma$ into a combination of an e-graph $\mathcal{G}$ and a set of rewrite rules $\Re$, and uses that alone.
+During the translation process of some $\varphi \in \Gamma$, there is special treatment of the operators $\implies$, $\forall$, and $=$, and of propositions that is used to create sound and effective rewrite rules.
+But all other logical constructs that do not affect the form of the resulting rewrite rule representing $\varphi$ are treated as uninterpreted functions.
+Since our encoding and proof search are constructive in nature, leaving many first order logic operators as uninterpreted function symbols does not add facts to the e-graph, and hence it is safe to do so.
+The power of LES actually lies in the enormous size of $\Gamma$, which come from all the background theories loaded in Coq.
 
-The heart of LES lies in its translation of the IR into an e-graph and a set of rewrite rules. This translation process is where much of the system's reasoning power is derived, and it involves several sophisticated techniques to ensure both effectiveness and efficiency.
-4.3.1 Formula Classification and Filtering
-LES adopts a discriminating approach to populating the e-graph. Each formula in the IR is classified either as a candidate for translation into a rewrite rule (typically universally quantified formulas) or as a constant to be added directly to the e-graph.
-To manage the size of the e-graph, which directly impacts the performance of e-matching operations, LES employs a filtering strategy for constants. Only those constants containing at least one symbol that also appears in the goal are retained. This seemingly simple heuristic has a profound impact on the system's performance, significantly reducing the e-graph's size and making equality saturation feasible in many cases where it would otherwise time out.
-4.3.2 Handling Axioms and Preconditions
-Axioms and the conjecture to be proved often come with preconditions. LES treats these carefully, extracting all preceding Forall and Imply expressions as preconditions and handling the remainder as the conclusion.
-For the conjecture, LES applies skolemization to the preconditions, treating them as additional axioms. This approach allows for a uniform treatment of both axioms and conjecture preconditions in the subsequent reasoning process.
-The translation of axioms into rewrite rules is a key feature of LES. The system generates multi-pattern rewrite rules, capable of matching unrelated parts of the e-graph. For instance, a single rule might match patterns like Prop(commutative +), Type(x, nat), and Type(y, nat) simultaneously. This multi-pattern approach allows for rich, context-aware rewriting that can capture complex logical relationships.
-4.3.3 Refinements in Translation
-LES employs several sophisticated refinements in its translation process to enhance its reasoning capabilities:
-Equality Simplification: When translating equalities in axiom preconditions, LES performs simplification to reduce redundancy and improve matching efficiency. If one side of an equality is a variable v, the system simplifies the pattern by equating v to a placeholder and substituting this placeholder in other preconditions and conclusions. This process can handle multiple equalities involving the same variable, and in cases where both sides are variables, one is chosen as a representative.
-Prop and Bool Handling: LES addresses the conflation of Props and bools that often occurs in CoqHammer's translation. Top-level bools are wrapped as equalities to True, but LES goes further by introducing a distinction between entities that are merely of type Prop and those that have an actual proof. This is achieved through the introduction of a special HasProof operator, applied to top-level preconditions and conclusions in rewrite rules and goals when they represent a Prop.
-Equality in Rewrite Rules: LES offers two modes for handling equalities in rewrite rule conclusions. In the "fast" mode, each equality generates two rewrite rules, one for each direction. In the more powerful "generative" mode, applicable when preconditions bind all free variables, a single rule is created that concludes both sides of the equality when preconditions are met. This latter mode is particularly effective in generating terms necessary for proof discovery, such as applying commutativity of addition given only the knowledge that two terms are natural numbers.
-These refinements allow LES to capture and reason about subtle logical relationships that might be lost in a more naive translation. The HasProof operator, in particular, enables LES to distinguish between the existence of a proposition and the existence of its proof, a crucial distinction in many Coq proofs.
-4.4 Goal Translation and Verification
-The translation of goals is a critical aspect of LES's operation, as the terms available in the e-graph significantly influence the system's deductive capabilities. LES employs different strategies for equality goals and Prop goals:
-Equality Goals: Both skolemized sides of the equality are added to the e-graph. LES then runs equality saturation and checks if the terms become equal. This approach ensures that all terms relevant to the goal are present in the e-graph, maximizing the potential for discovering a proof.
-Prop Goals: The goal is added to the e-graph without the HasProof operator. After running equality saturation, LES checks for the existence of the goal term with HasProof. This strategy allows all relevant terms to be present in the e-graph while maintaining the crucial distinction between a proposition's existence and its proof.
-The verification process in LES leverages the power of equality saturation. By exploring the space of equivalent terms efficiently, LES can often discover non-obvious connections that lead to proof discovery. The system's success in proving a goal is determined by the equality of relevant terms (for equality goals) or the existence of a HasProof term (for Prop goals) after the equality saturation process.
-4.5 Optimizations and Performance Enhancements
-To ensure practical applicability, LES incorporates several key optimizations:
-Constant Axiom Filtering: Large constant axioms are filtered based on size before addition to the e-graph. This prevents size blowup from single, expansive axioms (e.g., 100 + 1 = 101) that could lead to numerous spurious matches and significantly slow down the proving process.
-Parallel E-matching: LES implements parallel e-matching in the underlying e-graph library (egg). Given that e-matching is typically the most time-consuming operation in equality saturation, this parallelization can dramatically reduce overall runtime.
-Rewrite Rule Search Limitation: To prevent potentially infinite or excessively long searches, LES imposes a limit on the number of terms each rewrite rule can explore before giving up. While this might cause some proofs to fail, it is crucial for preventing pathological cases where bad rewrites dominate the computation time as the e-graph grows.
-These optimizations collectively enable LES to handle a wider range of problems efficiently, making it more suitable for integration into interactive proving workflows where responsiveness is key.
+\subsection{E-graph Encoding}
+\label{translation:les:encoding}
+
+The heart of LES lies in its encoding of $\Gamma$ into an e-graph and a set of rewrite rules.
+This translation process is where much of the system's reasoning power is derived, and it involves several techniques to ensure both efficiency and correctness relative to the IR.
+
+Essentially each formula needs to be translated in a semantics preserving way into a rewrite rule.
+But, since the rewrite rule will match and update the e-graph, we start with how facts are encoded into the e-graph.
+We take a constructive approach to proof search, which is well suited for problems translated from pure type systems like CIC.
+An important concept here is that the origin of our encoding is an $CIC_0$ environment from CoqHammer.
+In this environment, each object is either a correct type judgment or a proved proposition.
+We differentiate between propositions, where proofs are opaque, and types that have a witness.
+We only put correct facts in the e-graph, for types that is easy, as we can directly represent the judgment $t: \tau$ as $type(t,~\tau)$, and it's existence in the e-graph is sufficient, as $t$ is a witness.
+But, that does not work well for propositions. 
+
+Propositions are represented in CoqHammer as $Prop(p)$, meaning $p$ is of type $Prop$, but we can have a proposition such as $False || True$. 
+The proposition is correct, and can be proved in Coq using the Right constructor of $or$, but both $False$ and $True$ are props, and are part of the term.
+The e-graph then would contain $Prop(False),Prop(True)$.
+To solve this, we introduce the $HasProof$ operator, to separate between an expression of type $Prop$ and a proven proposition.
+
+When translating equality statements, LES incorporates them directly into the e-graph's equality relation.
+This allows for efficient reasoning about equality without the need for explicit equality terms in the e-graph in many cases.
+Accordingly, equality is also used in simplifying conditions in rewrite rules.
+This simplification is safe because it relies on the correctness of the equality relation maintained by the e-graph.
+Moreover, LES assumes transitive congruence of the equality relation which is implicitly handled by the e-graph structure, allowing for powerful reasoning about equality without the need for explicit rules for these properties. 
+
+Representing propositions, types and equality in the e-graph is sufficient for our encoding.
+Any expression can be added to the e-graph, but it's meaning will come from either having a $HasProof$ operator on it, some typing in the e-graph, or the equality relation.
+By carefully encoding formulas to conditional rewrite rules, by having the preconditions acting as guards, we can ensure that our conclusions are sound.
+
+\subsection{Translating IR Formulas to Rewrite Rules}
+\label{translation:les:rwrules}
+
+To create $\Re$, LES processes each $\varphi \in \Gamma$ to collect a variable set $V$, a set of precondition formulas $P$ and a conclusion formula $\varphi'$ where both $P$ and $\varphi'$ are expected to have free variables only from $V$.
+Then, a conditional rewrite rule $r$ representing $\bigwedge P \implies \varphi'$ can be created, where all instances of $V$ are holes.
+Note, we are assuming alpha renaming was already done to avoid name clashing.
+Matching $r$ needs to find an assignment $\sigma$ for $V$ for which $\sigma \models \bigwedge P$, then we can conclude $\varphi'\sigma$.
+The soundness depends, of course, on the encoding into rewrite rules while relying on the fact the e-graph contains correct facts only.
+
+To translate a given formula $\varphi$ into this format, LES first attempts to extract a set of preconditions by recursively matching on $\varphi$ using the extract preconditions procedure \autoref{alg:extract_preconditions}.
+\begin{algorithm}
+\caption{Function: extract\_preconditions}
+\label{alg:extract_preconditions}
+\begin{algorithmic}[1]
+\REQUIRE $\varphi$: Input formula
+\ENSURE $V$: Set of variables, $P$: Set of preconditions
+\STATE $V \gets \emptyset$
+\STATE $P \gets \emptyset$
+\WHILE{true}
+    \IF{$\varphi$ is of form $\forall x. \psi$}
+        \STATE ASSERT $x \notin V$
+        \STATE $V \gets V \cup \{x\}$
+        \STATE $\varphi \gets \psi$
+    \ELSIF{$\varphi$ is of form $\psi \implies \theta$}
+        \STATE $P \gets P \cup \{\psi\}$
+        \STATE $\varphi \gets \theta$
+    \ELSE
+        \STATE \textbf{break}
+    \ENDIF
+\ENDWHILE
+\STATE return $V, P, \varphi$
+\end{algorithmic}
+\end{algorithm}
+
+This gives us the set of variables to be used as holes, but we do additional processing of $\varphi'$ to refine $P$ further.
+First, and important for soundness, $\varphi'$ and each $p \in P$ are wrapped with the $HasProof$ operator if they are a proposition.
+This is important to keep the resulting rewrite rule sound, as we ensure each part of the original lemma or axiom is correctly matched.
+It is also applied on the goal, as the e-graph should contain a new proved fact once we correctly matched all conditions.
+
+Having $P$ as a set of condition is very useful in our encoding.
+LES uses multi-pattern rewrite rules (presented as matching trees in \cite{DBLP:conf/cade/MouraB07}), capable of matching unrelated parts of the e-graph. 
+It is important to have a more compact representation of the e-graph, as it will hold separate terms, and not chains of imply expression. 
+To better understand how separate conditions affect the e-matching, consider the formula:
+\[
+\varphi := \forall x.~Q(x) \implies \forall y.~W(y) \implies K(x, y)
+\]
+and the resulting extracted preconditions:
+\[
+V := \{ x, y \},~P := \{ HasProof(Q(x)),~HasProof(W(y)) \},~\varphi':=HasProof(K(x, y))
+\]
+
+First, it is clear that this $P$ is a sound encoding, as $~Q(X) \wedge W(y) \vdash Q(x) \implies W(y)$.
+The main advantage of splitting the precondition arises when we want to represent it in the e-graph.
+Remember, $x$ and $y$ act as holes in the rewrite rule, they will be matched against instances in the e-graph.
+In the original \emph{imply} form, for each instantiation $x',~y'$ of the $x,~y$ holes, to match the e-graph will need to contain an instance of $HasProof(Q(x') \implies W(y'))$.
+The \emph{split} form matches each of them separately, so it is enough for the e-graph to have $HasProof(Q(x'))$ and $HasProof(W(y'))$ separately.
+Of course for one formula the imply form might seem reasonable, but when extended to $n$ preconditions, with ordering between them, the required e-graph will quickly become difficult to maintain in large scale.
+As the observant reader might have noticed, the split form is not complete in the sense that $Q(x) \implies W(y) \not \vdash ~Q(X) \wedge W(y)$.
+This limitation is acceptable, as while LES might miss some proofs, it would be impossible to have an effective encoding with the imply form.
+
+After extracting the preconditions as explained, LES also has refinements for equality and IFF expressions found in the top of $\varphi'$.
+Similarly to collecting $P$, these are crucial for encoding effective rewrite rules.
+The semantics of these operators allow for deconstruction of the formula into smaller parts which are more suited for the e-graph encoding.
+Still, no over-approximation is done in the process, and any match found will remain sound.
+
+LES will first check if there is an IFF expression ($\varphi \iff \psi$) at the top level.
+If so, LES generates two rewrite rules: one for $\varphi \implies \psi$ and another for $\psi \implies \varphi$.
+It will go back to the extract preconditions procedure (\autoref{alg:extract_preconditions}), and then continue the process from there, with an updated $P$, $V$ and $varphi$.
+This refinement step is mostly useful to prevent e-graph size explosion.
+While we wanted to separate preconditions to a set $P$ to increase possible matches of the rule, with the IFF encoding we try to prevent adding unnecessary terms to the e-graph.
+Consider a simple formula:
+\[
+\varphi := \forall x,y.Nat(x) \implies Nat(y) \implies ~x \leq y \iff x < y~||~x = y
+\]
+It is clearly correct for all $x$ and $y$, but adding an instantiation of the formula to each present natural number will greatly burden the e-graph, and it is not clear yet if either side of the IFF expression is applicable (i.e. if the e-graph contains $x \leq y = true$).
+By splitting this into two rewrite rules, they will only be applied when at least one side matches.
+This, similarly to extracting the preconditions, will make some proofs impossible, as we no longer conclude proofs for a general IFF proposition from rewrite rules, but it is important to keep the e-graph small for LES to be effective.
+Do note that an IFF goal can still be proven, as described in \autoref{translation:les:goal}.
+
+Equality is also used in simplifying the conclusion in rewrite rules.
+Normally equality will be treated similarly to IFF, that is, LES creates two rewrite rules where the LHS and RHS are each used as a new precondition $p'$ or conclusion $\varphi'$ by turn.
+The rewrite rule then, given an assignment $\sigma$, unions the resulting e-classes $|p'\sigma|$ and $|\varphi'\sigma|$ to represent the equality.
+As opposed to IFF, we do not recurse in this situation, as it will no longer be sound.
+That is because in the CoqHammer translation IFF is a proposition used in between propositions, and equality is a proposition between two terms.
+
+% Unimportant note
+Please note that in any of the resulting $\varphi'$ formula, remaining forall, imply, IFF, and equality expressions are treated as uninterpreted functions.
+They will no longer be used with their semantic properties, as the translation is finished.
+
+There is a special case that after all the precondition extractions $P = \emptyset$.
+In this special case we would treat $\varphi$ as a constant to be added to the e-graph.
+LES adopts a discriminative approach to populating the e-graph, as large e-graphs can exponentially affect e-matching run-time.
+Only those constants containing at least one symbol that also appears in the goal are retained.
+This seemingly simple heuristic has a profound impact on the system's performance, significantly reducing the e-graph's size and making equality saturation feasible in many cases where it would otherwise time out.
+
+Note that if $P = \emptyset$ and the formula is universally quantified, then it is not possible to deconstruct the quantifier in a rewrite rule (see \autoref{translation:les:conditions}), but usually under a forall expression there will be some type guard, making that a rare case.
+
+\subsection{Encoding Rule Preconditions}
+\label{translation:les:conditions}
+
+There are two main limitations to creating a multi-pattern rewrite rule:
+\begin{enumerate}
+    \item All holes in the conclusion must appear in the matching patterns, that is $V$ contains all holes in $\varphi'$.
+    \item A hole alone cannot be a pattern (that would just match the full e-graph).
+\end{enumerate}
+
+First, we filter any formula where the resulting $V$ does not contain all the free variables in $\varphi'$.
+This is in accordance with an earlier assumption that no other free variables exist in $\varphi$.
+
+To partially solve the second point, and to allow for efficient reasoning about equality, a few steps are taken when encountering equality in a precondition.
+For instance, if there is some precondition $t_1 = t_2 \in P$, the resulting rewrite rule will need to check that $|t_1| = |t_2|$ (they are in the same e-class).
+That is well suited for multi-patterns, and is just split it into two separate patterns to check.
+This simplification is safe because it relies on the correctness of the equality relation maintained by the e-graph.
+
+To reduce redundancy and improve matching efficiency LES takes the equality handling over $P$ one step further.
+LES assigns each $p_i \in P$ a fresh variable, and holds a union-find data structure to represent an equality relation over the different $p_i$.
+This process can handle multiple equalities involving the same variable, and in cases where both sides are variables, one is chosen as a representative.
+Then, the each $p_i$, and $\varphi'$, go through a simplification step based on the collected equalities.
+
+\subsection{Goal encoding}
+\label{translation:les:goal}
+
+The translation of the goal conjecture $c$ is a critical aspect of LES's operation, as the terms available in the e-graph significantly influence the system's deductive capabilities.
+The more terms relevant to $c$ that are added to the e-graph, the more we expect relevant rewrite rules to match.
+So, similarly to how LES extracts preconditions for rewrite rules, it will do the same for conjectures as well, and assume they are all correct.
+All universally quantified variables ($V$) are instantiated to fresh constants.
+Then, the now constant terms, preconditions are added to the e-graph.
+There may be a $p \in P$ that is an implication.
+In this case it is treated as an axiom, and encoded as a new formula $\varphi$ would be.
+
+As for the goal itself, that is $\varphi'$ from the extracted preconditions of $c$, LES employs different strategies for equality goals and $HasProof$ goals (a typing goal will act as a $HasProof$ goal):
+For equality goals both sides of the equality are added to the e-graph. 
+LES then runs equality saturation and checks if the terms become equal. 
+This approach ensures that all terms relevant to the goal are present in the e-graph, maximizing the potential for discovering a proof.
+For $HasProof$ goals, the goal is added to the e-graph without the $HasProof$ operator on top. 
+After running equality saturation, LES checks for the existence of the goal term with $HasProof$. 
+This strategy allows all relevant terms to be present in the e-graph while maintaining the crucial distinction between a proposition's existence and its proof.

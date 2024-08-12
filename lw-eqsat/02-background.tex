@@ -5,44 +5,126 @@ Proof assistants usually consist of two basic layers: a \emph{kernel} is respons
 This split is conducive to the evolution of proof assistants, because the tactics can be developed more flexibly, without worrying about proof soundness.
 The kernel alone forms the TCB (trusted code base) that is assumed correct.
 
-Two of the most commonly used proof assistants today, Coq and Lean \ES{cite}, are based on Type Theory, thus reducing the problem of proof checking to one of \emph{type checking}.
+Two of the most commonly used proof assistants today, Coq and Lean \cite{Coq:manual,lean}, are based on Type Theory, thus reducing the problem of proof checking to one of \emph{type checking}.
 They employ similar flavors of the Calculus of Inductive Constructions (CIC), which is a typed pure lambda calculus with polymorphism and, importantly, dependent types.
-In such calculi, types are first-class expressions, and 
-type checking relies heavily on syntactic unification of terms.
-To offer some automatic assistance, terms are reduced to a \emph{normal form} and then compared.
-The normalization relies on the set of reductions that are part of the calculus (the most basic ones being $\beta$-reduction and $\eta$-reduction),
-as well as on definitions of basic mathematical concepts that are used (such as arithmetic operators like $+$ and $\cdot\,$).
 
-%(modulo $\beta$-equivalence).
-%Terms that are not syntactically identical but are nevertheless semantically equivalent, such as $x\cdot 5$ and $5\cdot x$, require manual application of the tactic language to show equality.
+Before introducing CIC, we start with simple typed lambda calculus,
+It is the basis for CIC and is similar to untyped lambda calculus but also associates types with terms consists of:
+\begin{itemize}
+\item Base types (e.g., $\text{Bool}, \text{Nat}$)
+\item Function types ($A \to B$, where $A$ and $B$ are types)
+\item Variables ($x, y, z, \ldots$)
+\item Abstraction ($\lambda x:A. M$, where $M$ is a lambda term and $A$ is its type)
+\item Application ($M N$, where $M$ and $N$ are lambda terms)
+\end{itemize}
+The introduction of types was followed by the important Curry-Howard correspondance which presents a way to interpret programs as proofs, and types as propositions.
+The simply typed lambda calculus rejects many programs, and thus prevents certain paradoxes that may arise, such as in typed lambda calculus systems with polymorphic types, such as Girard's paradox (analogous to Russell's paradox in set theory) \cite{hurkens1995simplificationgirardparadox}.
+However, the simply typed lambda calculus is quite restrictive, filtering out many useful programs.
+In fact, simply typed lambda calculus is not turing complete, as opposed to untyped lambda calculus.
+This is because simply typed lambda calculus is strongly normalizing, so evaluation terminates for every term \cite{loh2010tutorialdependentlytyped}.
+To increase expressivity while maintaining consistency, dependent type systems were developed.
+These systems allow polymorphism and types to depend on values, enabling more precise specifications, but adds some limitations to remain sound.
+The Calculus of Inductive Constructions (CIC) builds on this idea, incorporating several key features:
+\begin{itemize}
+\item Dependent product types ($\Pi$-types): $\Pi x:A. B$, where $B$ can depend on $x$
+\item Dependent sum types ($\Sigma$-types): $\Sigma x:A. B$, representing dependent pairs
+\item Inductive types: Allowing the definition of complex data structures
+\item Recursive functions: Enabling general recursion on inductive types
+\end{itemize}
+CIC forms a Pure Type System (PTS), which provides a unified framework for terms, types, and kinds. 
+
+To illustrate the power of dependent types, consider the following example of a vector type, which is a list with a length encoded in its type:
+\begin{verbatim}
+Inductive Vec (T : Type) : nat -> Type :=
+| nil : Vec T 0
+| cons : forall n, T -> Vec T n -> Vec T (S n).
+\end{verbatim}
+Here, \texttt{Vec T n} is a type that depends on both a type \texttt{T} and a natural number \texttt{n}. 
+This allows us to express properties about the length of the vector in its type. 
+For instance, we can define a function that safely accesses the first element of a non-empty vector:
+\begin{verbatim}
+Definition head {T : Type} {n : nat} (v : Vec T (S n)) : T :=
+match v with
+| cons _ x _ => x
+end.
+\end{verbatim}
+The type of \texttt{head} is $\Pi T:Type.~\Pi n:\text{nat}. \text{Vec } A~(\text{S } n) \to A$. 
+This type guarantees that \texttt{head} can only be called on non-empty vectors, eliminating the need for runtime checks or optional return types.
+
+To prevent paradoxes in this more expressive system, CIC creates type constraints for the dependent and polymorphic terms by introduces a hierarchy of universes: Prop, Set, Type$_1$, Type$_2$, $\ldots$
+As part of the type checking process, systems like Coq will check that the constraints are acyclic.
+A crucial feature in systems like Coq is the separation between Set and Prop. 
+This separation distinguishes between computational content (Set) and logical propositions (Prop):
+\begin{itemize}
+\item Set: Represents the universe of computational types (e.g., natural numbers, lists)
+\item Prop: Represents the universe of logical propositions
+\end{itemize}
+This separation is important for several reasons:
+\begin{enumerate}
+\item Proof Opacity: In Prop, we care only about the existence of a proof, not its specific form. 
+This allows for more efficient proof checking and equality comparisons.
+\item Program Extraction: The separation allows for the extraction of computational content from proofs, discarding the purely logical parts.
+\item Impredicativity: Prop is impredicative, allowing for powerful logical constructions while still maintaining consistency.
+\end{enumerate}
+This structure results in a proof-opaque pure type system, providing a powerful framework for both computation and logical reasoning. 
+The type checker in these systems verifies that a given term (proof) correctly inhabits its claimed type (proposition), leveraging the Curry-Howard correspondence to ensure the validity of mathematical arguments expressed in the system.
 
 \subsection{Hammer Systems}
 
-Hammer systems have emerged as powerful tools for automating proof discovery in ITPs. These systems typically combine premise selection, translation to first-order logic, and proof reconstruction. Notable examples include Sledgehammer for Isabelle/HOL \cite{sledgehammer}, HOLyHammer for HOL Light \cite{holyhammer}, and CoqHammer for Coq \cite{coqhammer}. These systems have demonstrated significant success in automatically proving a substantial portion of theorems in their respective libraries.
+Hammer systems have emerged as powerful tools for automating proof discovery in ITPs. 
+They take advantage of strong first order theorem provers, and attempt to use them in the context of the expressive high order logic used in the ITP.
+While the theorem provers were very successfully in many applications, working on an environment of definitions, axioms, and lemmas from some higher order logic, $\Gamma$, requires a few extra steps before it can be applied successfully.
+First, it is common for $\Gamma$ to be very large, making the application of the full environment range from difficult to infeasible.
+Secondly, the translation from the expressive higher order logic of the ITP to first order can significantly enhance amount of successful applications.
+Hammers are typically built from three main stages: premise selection to reduce the size of $\Gamma$, translation to first-order logic, and proof reconstruction to verify resulting proof in the trusted kernel.
+Notable examples of Hammers include Sledgehammer for Isabelle/HOL \cite{sledgehammer}, HOLyHammer for HOL Light \cite{holyhammer}, and CoqHammer for Coq \cite{coqhammer}. 
+These systems have demonstrated significant success in automatically proving a substantial portion of theorems in their respective libraries.
 
-\subsection{Translations to First-Order Logic}
+Many works have been done on the significance of a good method for premise selection, but one of the main points of LES's approach is to enable reasoning over a large $\Gamma$, therefore it is less relevant to this chapter.
+However, the translation to first order logic greatly affects what formulas we input to different first order provers, including LES, so we do want to take advantage of some of it's features, and thus present it shortly.
+As our work builds upon CoqHammer, we will focus on its translation.
 
-A key component of hammer systems is the translation of higher-order or dependently typed logics to first-order logic. This translation enables the use of highly optimized automated theorem provers (ATPs) that operate on first-order logic. Significant work in this area includes:
+\subsection{Translations of Higher-Order Logic to First-Order Logic}
 
+A fundamental approach for such translations was developed in \cite{kerber1990provecompleteembedding}, providing a sound and complete translation with respect to Henkin's general model semantics.
+The core idea is to define a recursive translation function $\theta$ that maps higher-order formulas to first-order formulas. 
+For example, a higher-order formula $\varphi = \forall P.~\psi(P)$ where $P$ is a predicate variable will be translated by recursing such that $\psi' = \theta(\psi)$, and introducing  new function and predicate symbols to represent higher-order constructs.
+The result is $\theta(\varphi) = \forall p.\psi'(p)$, where p becomes a first-order variable, that can represent the original high order predicates using the new predicate symbols.
+
+Another important aspect of the translation is the need to axiomatize properties of higher-order constructs. 
+For instance, consider the transitivity property of binary relations, which in second-order logic can be expressed as:
+\[
+\forall R.\text{transitive}(R) \leftrightarrow \forall x,y,z.(R(x,y) \wedge R(y,z) \rightarrow R(x,z))
+\]
+In the first-order translation, we might introduce a new predicate symbol $\text{application}(r,x,y)$ to represent the application of a binary relation $r$ to arguments $x$ and $y$. 
+The transitivity property would then be axiomatized as:
+\[
+\forall r.\text{transitive}(r) \leftrightarrow \forall x,y,z.(\text{application}(r,x,y) \wedge \text{application}(r,y,z) \rightarrow \text{application}(r,x,z))
+\]
+This axiom allows the first-order logic to reason about the transitivity of relations in a way that mimics the higher-order logic capabilities.
+
+An important result is that the translation presented in \cite{kerber1990provecompleteembedding} is complete in regards to Heinkins general model, but that is not directly relevant to this work.
+This means that any formula valid in all general models of higher-order logic will be translated to a valid formula in first-order logic, preserving semantic entailment. 
+While this theoretical completeness is significant for understanding the expressive power of the translation, it is not directly relevant to the practical application in this work, which can suffer from a huge increase in formula size.
+
+\subsection{Translation of Proof-Irrelevant Pure Type Systems to First-Order Logic}
+
+While the general approach outlined above provides a foundation for translating higher-order logic to first-order logic, the translation of proof-irrelevant Pure Type Systems (piPTS) \cite{czajka2018shallow} requires some specific considerations. 
+The approach used in tools like CoqHammer \cite{coqhammer} differs in several key aspects.
+CoqHammer employs two mutually recursive translation functions (that depend on an environment $\Gamma$) rather than a single recursive function.
 \begin{itemize}
-    \item Czajka's shallow embedding of pure type systems into first-order logic \cite{czajka2018shallow}, which provides a foundation for translating dependently typed systems.
-    \item Meng and Paulson's technique for translating higher-order clauses to first-order clauses \cite{meng2008translating}, which has been influential in the development of hammer systems for higher-order logic.
+\item $F_\Gamma$: Translates propositions (terms from the Prop universe) to first-order formulas
+\item $C_\Gamma$: Translates other terms to first-order terms
 \end{itemize}
+This allows for more flexibility in handling different constructs of the source type theory.
+The environment is essential for determining how to translate specific terms based on their types in the original system.
+One of the key features of this translation is the use of type guards. 
+For a term $t$ of type $A$, the translation introduces a predicate $T(t, C_\Gamma(A))$, where $C_\Gamma(A)$ is the translation of the type $A$. 
+This guard ensures that the translated formula respects the typing constraints of the original system.
+Additionally, the translation introduces a special predicate $P$ to represent propositions.
+For a proposition $\varphi$ in the original system, its translation often takes the form $P(C_\Gamma(\varphi))$, indicating that the translated term represents a proposition.
+The translation also generates axioms to represent the semantics of the translated objects, including type inference formulas. 
+These are additional axioms that capture the typing rules of the original system. 
 
-These translations face the challenge of balancing completeness, soundness, and practical efficiency.
-
-\subsection{Automation in Dependently Typed Systems}
-
-Dependently typed proof assistants like Coq and Lean have their own built-in automation tactics. Coq provides tactics such as \texttt{auto}, \texttt{eauto}, and \texttt{firstorder} \cite{Coq:manual}, which perform limited proof search. Lean offers a powerful tactic framework that allows users to write custom automation \cite{lean}.
-
-Integration with SMT solvers has also been explored, as exemplified by Armand et al's work \cite{armand2011modular}, which integrates SMT solvers into Coq's by using proof witnesses, as opposed to hammers which attempt to reconstruct proofs using deductions.
-
-\subsection{Premise Selection}
-
-Efficient premise selection is crucial for the performance of hammer systems, especially when dealing with large formal libraries. Recent advancements in this area include the use of machine learning techniques. For instance, \ES{TODO}.
-
-\subsection{Equality Saturation}
-
-Equality saturation, implemented efficiently using e-graphs, has shown promise in program optimization and equivalence reasoning \cite{egg}. This technique allows for a more flexible exploration of the equality relation, potentially offering advantages in proof search and simplification.
-
-Our work builds upon these foundations, aiming to develop a lightweight equality saturation approach for Coq that balances automation power with logical soundness and efficiency.
+This approach allows for a more nuanced translation that preserves more of the structure and typing information of the original proof-irrelevant Pure Type System. 
+While it may not provide the same theoretical completeness guarantees as the general approach mentioned earlier, it is designed to be more practical for use in automated theorem proving, particularly in the context of hammer-style tools for proof assistants based on dependent type theory.
