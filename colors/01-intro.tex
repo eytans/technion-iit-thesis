@@ -6,7 +6,7 @@ E-graphs are a versatile data structure that is used for various tasks of automa
 E-graphs have been popularized in compiler optimizations thanks to their ability to support efficient \emph{rewrites} over a large set of terms, while keeping a compact representation of all possible rewrite outcomes.
 This mechanism is known as \emph{equality saturation}.
 It provides a powerful engine that allows a reasoner to generate all equality consequences of a set of known, universally quantified, equalities.
-Possible uses include selecting the best equivalent of an expression according to some desired metric, such as run-time efficiency~\cite{POPL2009:Tate}, size~\cite{flatt2022small,DBLP:conf/fmcad/NotzliBNPRBT22}, or precision~\cite{herbie}
+Possible uses include selecting the best equivalent of an expression according to some desired metric, such as run-time efficiency~\cite{eqsat}, size~\cite{flatt2022small,DBLP:conf/fmcad/NotzliBNPRBT22}, or precision~\cite{herbie}
 (when used as a compilation phase)
 and a generalized form of unification, called e-unification, for application of inference steps (when used for proof search).
 
@@ -17,7 +17,7 @@ A theory exploration system attempts to both discover and prove mathematical pro
 Most of the difficulty in theory exploration comes from the generation and filtering of candidates, rather then from the proof procedure itself.
 TheSy does so by efficiently filtering a large set of potential conjectures using e-graphs for equality reasoning, and evaluating which should be potentially proved.
 While e-graphs are effective for equality reasoning \cite{egg}, handling branching, such as case splitting during proof search, do not have a common solution, and are treated ad-hoc.
-For example, a special type of node is introduced in \cite{POPL2009:Tate} to deal with loop conditions, while in \cite{coward2023automating} a special operator is introduced to reason on expressions under certain contexts, and \cite{thesy} creates full copies of the e-graph for each branch being explored.
+For example, a special type of node is introduced in \cite{eqsat} to deal with loop conditions, while in \cite{coward2023automating} a special operator is introduced to reason on expressions under certain contexts, and \cite{thesy} creates full copies of the e-graph for each branch being explored.
 
 % Gap
 To illustrate this difficulty, we zoom in on an example from theory exploration.
