@@ -122,8 +122,8 @@ Newer methods attempt to deal with the search space explosion problem by using c
 IsaCoSy \cite{JAR2010:Johanssonisacosy}, uses constraint-based synthesis to generate conjectures while trying to maintain completeness.
 Other systems use templates as a heuristic to constrain or simplify conjecture generation \cite{einarsdottir2020template,ESA2012:Montanoschemebased,mccasland2006mathsaid}. 
 
-More recent, and especially successful, approaches rely on equality relations as a means to compress the search space.
-QuickSpec \cite{JFP2017:Smallbonequickspec2, claessen2010quickspec1} uses observable equality (equality over a finite set of examples) as an equality relation.
+More recent, and especially successful, approaches rely on equivalence relations as a means to compress the search space.
+QuickSpec \cite{JFP2017:Smallbonequickspec2, claessen2010quickspec1} uses observable equality (equality over a finite set of examples) as an equivalence relation.
 However, observable equality suffers from two big issues.
 First, it requires concrete examples to run, which QuickSpec partially solves by relying on the property testing. 
 The second problem arises because observable equality may imply incorrect equalities leading to wrong conjectures, but further work, HipSpec \cite{hipster}, uses theorem provers on top of QuickSpec to circumvent correctness issues.
@@ -154,10 +154,10 @@ For example, consider the expression $min(x,y) + max(x,y)$.
 A human reasoner quickly realizes that whether $x < y$ or $x \geq y$, the result will be the same, $x + y$.
 But, an automated reasoner will need to choose to split the reasoning process on $x < y$, and use the definition of $min$ and $max$ in each reasoning branch.
 
-The main challenge lies in the fact that an e-graph represents a single global equality relation, and saying a fact like $x < y = true$ will affect all expressions referring to it, including, for example, $max(x,~y)$.
+The main challenge lies in the fact that an e-graph represents a single global equivalence relation, and saying a fact like $x < y = true$ will affect all expressions referring to it, including, for example, $max(x,~y)$.
 Reasoning about each case separately will usually require a separate e-graph.
 Of course, it is possible to clone the e-graph,
-and thus have multiple equality relations at once.
+and thus have multiple equivalence relations at once.
 TheSy \cite{thesy} (part of this thesis) uses this cloning approach to handle different conditions. 
 When encountering a conditional, TheSy creates separate copies (clones) of the e-graph for each branch of the condition.
 In the example above, $min(x,~y) + max(x,~y)$, TheSy would create two e-graph clones:
@@ -170,12 +170,12 @@ This approach allows for powerful conditional reasoning, as each clone can apply
 However, it comes at a significant cost in terms of memory usage and computational efficiency, especially when dealing with multiple nested conditions.
 
 Several ad-hoc approaches have been developed to address this challenge, each with its own trade-offs.
-The seminal work on equality saturation in compilers~\cite{eqsat} introduced a local form of condition handling by a adding a new context under conditional flow control, where the environment (i.e. the equality relation and each variable) are duplicated.
+The seminal work on equality saturation in compilers~\cite{eqsat} introduced a local form of condition handling by a adding a new context under conditional flow control, where the environment (i.e. the equivalence relation and each variable) are duplicated.
 This is very useful for applying optimizations, and is used for both \textit{if} statements and loops in an \gls{epeg}.
 This allowed for some conditional reasoning, but was not a generally applicable solution.
 Another approach was introduced in a work combining abstract interpretation with e-graphs \cite{abstracteqsat}.
 They proposed the introduction of special \emph{ASSUME} nodes to capture constraints and essentially separates the relevant sub-graphs under the constraint.
-This is a useful approach to conditional reasoning, that reused the main equality relation, but essentially leads to duplicating the e-graph under different ASSUME nodes, limiting its applicability.
+This is a useful approach to conditional reasoning, that reused the main equivalence relation, but essentially leads to duplicating the e-graph under different ASSUME nodes, limiting its applicability.
 
 The challenges and limitations of existing approaches to conditional reasoning in e-graphs motivate the development of new techniques that can maintain the benefits of e-graphs while efficiently handling conditionals. 
 As part of this thesis, a variant of \gls{egraphs}, \emph{colored e-graphs}, were developed, aiming to provide a more flexible and memory-efficient approach to representing conditional equivalences and reasoning about them within the e-graph framework.
@@ -183,7 +183,7 @@ Colored e-graphs build upon the insights gained from previous approaches, seekin
 
 \ES{Shachar I added some text here}
 The design of colored e-graphs is based on the observation that each conditional case we reason on usually only affects a small part of the e-graph.
-By introducing a layered approach to representing multiple equality relations, colored e-graphs achieve increased sharing of substructures in the presence of conditional reasoning.
+By introducing a layered approach to representing multiple equivalence relations, colored e-graphs achieve increased sharing of substructures in the presence of conditional reasoning.
 This leads to the ability to do either local or global conditional reasoning with a low cost to memory.
 Colored e-graphs also optimize the different e-graph operations such that it's performance is on par with the clone approach.
 By addressing the challenge of efficiently handling conditions in e-graph structures, colored e-graphs expand the applicability of equality saturation to more complex logical scenarios.

@@ -71,14 +71,14 @@ The proposition is correct, and can be proved in Coq using the Right constructor
 The e-graph then would contain $Prop(False),Prop(True)$.
 To solve this, we introduce the $HasProof$ operator, to separate between an expression of type $Prop$ and a proven proposition.
 
-When translating equality statements, LES incorporates them directly into the e-graph's equality relation.
+When translating equality statements, LES incorporates them directly into the e-graph's equivalence relation.
 This allows for efficient reasoning about equality without the need for explicit equality terms in the e-graph in many cases.
 Accordingly, equality is also used in simplifying conditions in rewrite rules.
-This simplification is safe because it relies on the correctness of the equality relation maintained by the e-graph.
-Moreover, LES assumes transitive congruence of the equality relation which is implicitly handled by the e-graph structure, allowing for powerful reasoning about equality without the need for explicit rules for these properties. 
+This simplification is safe because it relies on the correctness of the equivalence relation maintained by the e-graph.
+Moreover, LES assumes transitive congruence of the equivalence relation which is implicitly handled by the e-graph structure, allowing for powerful reasoning about equality without the need for explicit rules for these properties. 
 
 Representing propositions, types and equality in the e-graph is sufficient for our encoding.
-Any expression can be added to the e-graph, but it's meaning will come from either having a $HasProof$ operator on it, some typing in the e-graph, or the equality relation.
+Any expression can be added to the e-graph, but it's meaning will come from either having a $HasProof$ operator on it, some typing in the e-graph, or the equivalence relation.
 By carefully encoding formulas to conditional rewrite rules, by having the preconditions acting as guards, we can ensure that our conclusions are sound.
 
 \subsection{Translating IR Formulas to Rewrite Rules}
@@ -200,10 +200,10 @@ This is in accordance with an earlier assumption that no other free variables ex
 To partially solve the second point, and to allow for efficient reasoning about equality, a few steps are taken when encountering equality in a precondition.
 For instance, if there is some precondition $t_1 = t_2 \in P$, the resulting rewrite rule will need to check that $|t_1| = |t_2|$ (they are in the same e-class).
 That is well suited for multi-patterns, and is just split it into two separate patterns to check.
-This simplification is safe because it relies on the correctness of the equality relation maintained by the e-graph.
+This simplification is safe because it relies on the correctness of the equivalence relation maintained by the e-graph.
 
 To reduce redundancy and improve matching efficiency LES takes the equality handling over $P$ one step further.
-LES assigns each $p_i \in P$ a fresh variable, and holds a union-find data structure to represent an equality relation over the different $p_i$.
+LES assigns each $p_i \in P$ a fresh variable, and holds a union-find data structure to represent an equivalence relation over the different $p_i$.
 This process can handle multiple equalities involving the same variable, and in cases where both sides are variables, one is chosen as a representative.
 Then, the each $p_i$, and $\varphi'$, go through a simplification step based on the collected equalities.
 

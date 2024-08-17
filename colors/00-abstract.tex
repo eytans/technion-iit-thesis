@@ -19,8 +19,8 @@ to make progress.
 This poses a severe limitation on the ability to harness e-graphs for the task.
 
 Our key observation is that in exploratory reasoning tasks, branching represents versions of the same e-graph each with an added assumption, such as ``$x > y$'' or ``$\tissorted\,l$''.
-Essentially, each e-graph represents an equality relation, and each branch corresponds to a matching coarsened equality relation.
-Based on this observation, we present an extension to e-graphs, called \emph{Colored E-Graphs}, as a way to efficiently represent all of the coarsened equality relations in a single structure.
+Essentially, each e-graph represents an equivalence relation, and each branch corresponds to a matching coarsened equivalence relation.
+Based on this observation, we present an extension to e-graphs, called \emph{Colored E-Graphs}, as a way to efficiently represent all of the coarsened equivalence relations in a single structure.
 A colored e-graph is a memory-efficient equivalent of multiple copies of an e-graph, with a much lower overhead.
 This is attained by sharing as much as possible between different cases, while carefully tracking which conclusion is true under which assumption.
 It can be viewed as adding multiple ``color-coded'' layers on top of the original e-graph structure, representing different assumptions.

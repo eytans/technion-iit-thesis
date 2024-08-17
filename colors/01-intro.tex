@@ -38,7 +38,7 @@ Therefore, just trying the candidates one at a time would mean that the system w
 
 % Innovation
 To overcome this difficulty, we propose an extension of the e-graph data structure.
-An e-graph naturally represents a congruence relation $\cong$, which is an equality relation over terms (with function applications), which  maintains $x \cong y \vdash f(x) \cong f(y)$.
+An e-graph naturally represents a congruence relation $\cong$, which is an equivalence relation over terms (with function applications), which  maintains $x \cong y \vdash f(x) \cong f(y)$ (see \autoref{perlims:congrel}).
 The congruence relation is maintained in the e-graph as a set of equivalence classes (e-classes), which can be merged as part of updating the underlying relation. 
 We extend the e-graph data structure into a \emph{Colored E-Graph} to maintain multiple congruence relations at once, where each relation is associated with a color.
 Our key observation is that each added assumption, can be treated as a new congruence relation, but is only a coarsening of the original relation. 
