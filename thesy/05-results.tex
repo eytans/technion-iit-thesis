@@ -18,7 +18,7 @@ A situation where this is \emph{not} the case is when \emph{multiple} uninterpre
 To illustrate, consider the case in \autoref{overview:induction-example} where both the list $\clrterm x::xs$ and $\clrterm p\,x$ are used in match expressions, therefore a case split is needed by ${\clrterm p\,x} \in \{\ttrue,\tfalse\}$.
 Therefore, \TheSy only performs case splitting for rewrite rules that require multiple match patterns but only one is blocked.
 
-The splitting mechanism itself, operates by copying the e-graph and applying the term rewriting logic separately for each case. 
+The splitting mechanism itself, operates by copying the e-graph and applying equality saturation separately for each case. 
 Each copy then yields a partition of the existing equivalence classes. 
 These partitions are intersected between all cases, and each of the resulting intersections lead to merging of equivalence classes in the original e-graph.
 It is worth noting that \TheSy never needs to backtrack a case split it has elected to apply.
@@ -63,9 +63,9 @@ It is important to choose $S$ such that whenever $A$ (or $B$) discards $\varphi$
 
 \begin{figure}[t]
     \input{thesy/img/scatter-plot}
-%
-\vspace{-2em}  % why does it make this space? 
-    \caption{A scatter plot showing the ratio of lemmas in theories discovered by each tool that were subsumed by the theory discovered by its counterpart ($\tthesy$ = \TheSy, $\thipster$ = Hipster). Each point represents a single test case.
+    
+    \caption[A scatter plot showing the ratio of lemmas in theories discovered by each
+tool]{A scatter plot showing the ratio of lemmas in theories discovered by each tool that were subsumed by the theory discovered by its counterpart ($\tthesy$ = \TheSy, $\thipster$ = Hipster). Each point represents a single test case.
     The vertical axis shows how many of the lemmas discovered by Hipster were subsumed by those discovered by \TheSy, and the horizontal axis shows the converse.}
     \label{results:ratio_chart}
 \end{figure}
@@ -100,8 +100,8 @@ Comparing the two charts, while \TheSy performs reasonably well compared to Hips
 \centering
 %\input{tables/time_percentiles}
 \input{thesy/img/cactus-plot.tex}
-\vspace{-2em}
-\caption{Time to fully explore the 85 IsaPlanner benchmarks.
+
+\caption[Time to fully explore the 85 IsaPlanner benchmarks]{Time to fully explore the 85 IsaPlanner benchmarks.
 A full exploration is considered one where either all terms up to the depth bound have been enumerated or a timeout of 1hr has been reached.
 The $y$ axis shows the amount of time needed to complete the first $x$ benchmarks, when they are sorted from shortest- to longest-running.
 (Time scale is logarithmic; lower is better.)}
@@ -150,7 +150,7 @@ CVC4 with its conjecture generation enabled was able to solve 260 of them.
     \centering
     %\includegraphics[width=\textwidth]{img/chart_solve_accum.pdf}
     \input{thesy/img/cvc4-benchmarks/cactus-plot}
-    \caption{Accumulated time-to-solve for each of the benchmark suites from the CVC4 collection.
+    \caption[Accumulated time-to-solve CVC4 benchmarks]{Accumulated time-to-solve for each of the benchmark suites from the CVC4 collection.
     The $y$ axis shows the amount of time needed to complete the first $x$ (successful) proofs, when benchmarks are sorted from shortest- to longest-running.}
     \label{results:solve-accum}
 \end{figure}

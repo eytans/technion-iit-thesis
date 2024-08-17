@@ -166,6 +166,13 @@ The rewrite rule then, given an assignment $\sigma$, unions the resulting e-clas
 As opposed to IFF, we do not recurse in this situation, as it will no longer be sound.
 That is because in the CoqHammer translation IFF is a proposition used in between propositions, and equality is a proposition between two terms.
 
+Since LES is essentially requires relevant e-nodes to be included in the e-graph to succesfuly reason, we also introduce a generative approach to equality rules.
+When $P$ (without $p'$) binds all free variables, a single rule can be created that, when all preconditions are met, concludes both sides of the equality at once. 
+We dub this mode as \emph{generative} mode, and it is particularly effective in generating terms necessary for proof discovery. 
+For example, \ES{TODO}.
+These refinements allow LES to capture and reason about subtle logical relationships that might be lost in a more naive translation.
+Although this will quickly fill the e-graph with many unnecessary terms, this mode is important for the success of LES, and we perform an ablation study in \autoref{les:eval} to show this modes effectiveness.
+
 % Unimportant note
 Please note that in any of the resulting $\varphi'$ formula, remaining forall, imply, IFF, and equality expressions are treated as uninterpreted functions.
 They will no longer be used with their semantic properties, as the translation is finished.

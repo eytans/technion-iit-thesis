@@ -15,86 +15,86 @@
 % Then I can go into different approaches done in reasoning tasks I am interested in, and their accopanying equality saturation technique.
 % Why is equality saturation succesful maybe quote.
 % My specific techniques? Contributions
-
 Deductive reasoning, a cornerstone of logical thought, forms the basis for many powerful techniques in automated reasoning systems. 
-At its core, deductive reasoning involves drawing logical conclusions from a set of premises, applying general principles to specific instances. 
+At its core, deductive reasoning involves drawing logical conclusions from a set of premises and applying general principles to specific instances. 
 This approach has become instrumental in automatically proving properties of software systems, optimizing code, and discovering new mathematical truths.
 
-Automatic deductive reasoning is mostly used for software development and validation.
-As software systems have become increasingly complex, the importance of automated reasoning has grown significantly \cite{d2008survey}. 
-Methods of optimization and verification are more crucial than ever, as software is embedded in critical infrastructure, from financial systems to healthcare devices.
-Thus, automated reasoning techniques have been a center of attention for many years\footnote{But, attention is not all you need}. 
-One of the fundamental approaches in this field is term rewriting. 
-Term rewriting involves systematically replacing subterms of a formula with equivalent terms according to a set of rewrite rules. 
-For example, in arithmetic, we might have a rule that states $a + b - b \rightarrow a$ where $a$ and $b$ are arbitrary terms. 
+As software systems have become increasingly complex and embedded in critical infrastructure, from financial systems to healthcare devices, the importance of automated reasoning has grown significantly \cite{d2008survey}. 
+Thus, automated reasoning techniques have drawn attention for many years. 
+One fundamental approach in this field is term rewriting, which involves systematically replacing subterms of a formula with equivalent terms according to a set of rewrite rules. 
+For example, we might have a rule in arithmetic that states $a + b - b \rightarrow a$ where $a$ and $b$ are arbitrary terms. 
 This rule would allow us to simplify expressions like $5 + (x\cdot y) - (x\cdot y)$ to just $5$.
 
-While powerful, term rewriting faces several challenges:
+While powerful, term rewriting faces several limitations:
 \begin{enumerate}
-    \item Termination: It's not always clear whether the rewriting process will terminate, especially with complex rule sets.
-    \item Confluence: Even when termination is guaranteed, different rewriting sequences might lead to different normal forms, complicating reasoning about term equivalence.
-    \item Information loss: Once a rewrite step is taken, the original term is typically discarded, potentially losing valuable information for later reasoning steps.
+    \item Termination: It is not always clear whether the rewriting process will terminate, especially when working with complex rule sets.
+    \item Confluence: Different rewriting sequences might lead to different normal forms, limiting its applicability in testing of term equivalence.
+    \item Information loss: Typically, once a rewrite step is taken, the original term is discarded, potentially losing valuable information for later reasoning steps.
 \end{enumerate}
 
 To address some of these issues, techniques like the Knuth-Bendix completion algorithm \cite{knuthbendixcompletion} have been developed. 
 This algorithm attempts to transform a set of equations into a confluent and terminating term rewriting system. 
-That is, using the rewrite system on two provably equal terms will result in both terminating with the same normal form.
-However, it doesn't fully solve the problem of information loss and can struggle with certain types of equations. 
+Using the resulting rewrite system on two provably equal terms will result in both terminating with the same normal form.
+However, it only partially solves the information loss problem and can struggle with certain types of equations.
 For example, the commutativity of addition, $x + y \rightarrow y + x$, poses challenges for the Knuth-Bendix completion algorithm. 
 If included directly as a rewrite rule, it can lead to non-termination \cite{kapur1985knuthintro}.
 
-Equality saturation is a relatively new deductive reasoning technique that has emerged as a promising solution to address many of these challenges \cite{eqsat}. 
-It is based on e-graphs \cite{egg}\SI{seems like we should cite the earliest source}, a data structure that can compactly represent a large set of equivalent terms.
+\gls{eqsat} is a relatively new deductive reasoning technique that has emerged as a promising solution to address many of these challenges \cite{eqsat}. 
+It is based on \gls{egraphs} \cite{egraphsnelson1980fast,egg}, a data structure that can compactly represent a large set of equivalent terms.
 In this context, a term is a symbolic expression that represents a mathematical expression or computation, typically composed of variables, constants, and function symbols, such as  $f(x+2)$ and $3 \cdot y^2$.
 An easy way to think about e-graphs is as an extension of the union-find data structure to include congruence closure over terms.
-In an e-graph, each node (called an e-class) represents a set of terms that are known to be equal.
-Edges\SI{It is only us that ever call them edges, I think; and therefore the confusion is self-inflicted} in the e-graph (somewhat confusingly called e-nodes) represent function applications.
-For example, if we know that $a = b$ and $f(a) = c$, an e-graph could represent the terms $\{ a, b, c, f(a), f(b) \}$ with two e-classes $\{ e_1, e_2 \}$ and four e-nodes: $e_1  = \{a, b\}$, $e_2 = \{f(|e_1|), c\}$.
-Do note that $a$, $b$, and $c$ are treated as nullary functions, and that e-nodes are function applications over e-classes, so we mark $|e_1|$ to indicate the parameter is the e-class $e_1$.
-The compact representation is based on shared subterms, so in the worse case no subterms are shared and no compaction is achieved.
+An e-graph is constructed from a set of \gls{eclasses} where each represents a set of terms that are known to be equal.
+Each e-class does not contain the terms themselves; rather, it will contain \emph{e-nodes}, which represent function applications over other \gls{eclasses}.
+For example, if we know that $a = b$ and $f(a) = c$, an e-graph could represent the terms $\{ a, b, c, f(a), f(b) \}$ with two e-classes $\{ e_1, e_2 \}$ and four e-nodes: $e_1  = \{a, b\}$, $e_2 = \{f([e_1]), c\}$.
+Do note that $a$, $b$, and $c$ are treated as nullary functions and that e-nodes are function applications over e-classes, so we mark \gls{symb:eclass} to indicate the parameter as the e-class $e$.
+The compact representation is based on shared subterms, so in the worst case, no subterms are shared, and no compaction is achieved.
 However, an e-graph can also represent infinitely many expressions in a single e-class.
-Let's take for example $x$ and $x + 0$.
-Both will be in the same e-class $e$, such that the e-node $|e| + 0\in e$ is over any term represented by $e$, inductively giving rise to an infinite set of terms.
+Let us take, for example, $x$ and $x + 0$.
+Both will be in the same e-class $e$, such that the e-node $[e] + 0\in e$ is over any term represented by $e$, inductively giving rise to an infinite set of terms.
 
-Equality saturation employs e-graphs to build a compact representation of all possible rewrites of a given expression. 
-Instead of applying rewrite rules sequentially and discarding intermediate results, equality saturation applies all possible rewrites simultaneously, storing the results in the e-graph. 
-This approach allows for a more comprehensive exploration of the solution space without committing to a particular sequence of rewrites. 
-The power of equality saturation has been demonstrated across various applications:
+\gls{eqsat} employs e-graphs to build a compact representation of all possible rewrites of a given expression.
+Instead of applying rewrite rules sequentially and discarding intermediate results, \gls{eqsat} applies all possible rewrites simultaneously, storing all the resulting equivalent expressions in the e-graph. 
+The power of \gls{eqsat} has been demonstrated across various applications:
 
-\paragraph{Program Optimization} Equality saturation has, originally and in later work, been used to discover complex code transformations that significantly improve performance \cite{eqsat}.
-Its main advantage is the ability to choose global optimizations rather than the local ones normally obtained using classical heuristic rewriting.
-Another instance, the TENSAT superoptimizer, uses equality saturation to find optimized tensor graphs \cite{tensat} which is important for the recent surge in deep learning tools and applications.
-Similarly, Herbie~\cite{herbie} is a tool that applies equality saturation to floating-point expressions, achieving greatly improved accuracy and numerical stability of computations involving them.
+\paragraph{Program Optimization} \gls{eqsat} has, originally and in later work, been used to discover complex code transformations that significantly improve performance \cite{eqsat}.
+Its main advantage is the ability to choose global optimizations rather than the local ones typically obtained using classical heuristic rewriting.
+The TENSAT superoptimizer is another example; it uses \gls{eqsat} to find optimized tensor graphs \cite{tensat}, which is useful for the recent surge in deep learning tools and applications.
+Similarly, Herbie~\cite{herbie} is a tool that applies \gls{eqsat} to floating-point expressions, achieving greatly improved accuracy and numerical stability of computations involving them.
 
 \paragraph{Program Verification and Theorem Proving}
-Equality saturation has also made significant strides in the domains of program verification and theorem proving. 
-TheSy \cite{thesy}, which is part of the contributions of this thesis, leverages equality saturation for theory exploration, automatically discovering and proving new lemmas in mathematical theories.
-In the realm of program analysis, the combination of abstract interpretation with equality saturation \cite{abstracteqsat} has shown promise in improving the precision and efficiency of static analysis tools. 
-Equality saturation has been employed in fuzz testing of compilers as well. 
+\gls{eqsat} has also been applied successfully for program verification and theorem proving.
+TheSy \cite{thesy}, which is part of the contributions of this thesis, leverages \gls{eqsat} for theory exploration, automatically discovering and proving new lemmas in mathematical theories.
+In the realm of program analysis, the combination of abstract interpretation with \gls{eqsat} \cite{abstracteqsat} has shown promise in improving the precision and efficiency of static analysis tools. 
+\gls{eqsat} has also been employed in fuzz testing of compilers. 
 WASM Mutate~\cite{arteaga2022wasm} generates semantically equivalent mutations, aiding in testing and verification efforts of WASM compilers. 
-Furthermore, an issue with using equality saturation (and its inherently applied congruence closure) was that proof traces could be difficult to verify. 
-This is important, as usually verification systems\SI{I would be more specific here and cite e.g.\@ VST and Iris as "verification systems" that are embedded in Coq} like the Coq proof assistant \cite{Coq:manual} work on a small trusted core, and are often used to verify proofs from external tools \cite{armand2011modular, coqhammer}. 
-The ``Small Proofs from Congruence Closure'' technique \cite{flatt2022small} demonstrates how equality saturation can be used to generate compact proofs from e-graphs, bridging the gap for equality saturation to be used in automated reasoning systems.
+Furthermore, an issue with using \gls{eqsat} is that proof traces could be difficult to verify. 
+When using external provers combined with an interactive proof assistant, the proof assistant contains a small trusted core used to verify the proofs from the external tools \cite{armand2011modular, coqhammer, Coq:manual}.  
+However, it can be computationally difficult to verify these proofs.
+The "Small Proofs from Congruence Closure" technique \cite{flatt2022small} can generate compact proofs from e-graphs, bridging the gap for \gls{eqsat} to be used in proof assistants.
 
-\paragraph{Program Synthesis} Equality saturation has proven to be particularly effective in program synthesis tasks due to its ability to compactly represent vast search spaces of potential programs.
-This compact representation allows for efficient exploration of numerous program variants simultaneously.
-For instance, the Babble synthesizer \cite{cao2023babble} leverages equality saturation to compress learned libraries of function, exploring a wide range of implementation choices in a single e-graph. 
-In the domain of rewrite rule inference Ruler \cite{ruler} uses equality saturation to automatically discover new term rewriting rules from a set of input-output examples, effectively synthesizing program transformations. 
-This approach has shown promise in automating the discovery of optimization rules for domain-specific languages. 
-Furthermore, in the field of computer-aided design (CAD), the Szalinski tool \cite{nandi2020synthesizing} uses e-graphs to represent and manipulate CAD programs, enabling the synthesis of more abstract, parametric CAD models.
+\paragraph{Program Synthesis} Equality saturation has been particularly effective in program synthesis tasks due to its ability to compactly represent vast search spaces of potential programs, allowing for efficient exploration of numerous program variants simultaneously.
+For instance, the Babble synthesizer \cite{cao2023babble} leverages equality saturation to compress learned libraries of functions, exploring a wide range of implementation choices in a single e-graph. 
+Ruler \cite{ruler} uses equality saturation to automatically discover new term rewriting rules from input-output examples, effectively synthesizing program transformations.
+The Szalinski tool \cite{nandi2020synthesizing} uses e-graphs to represent and manipulate \gls{cad} models, enabling the synthesis of more abstract, parametric CAD models.
 
 \bigskip
 
-Despite these successes, the full potential of equality saturation in deductive reasoning remains to be explored. 
-Several challenges persist:
+In this thesis, we aim to improve the applicability of automatic deductive reasoning, specifically by using equality saturation.
+The first question we asked was: Can we deductively transform a single-threaded program into a parallel one?
+Quickly, we realized that the main bottleneck was missing rewrite rules, and many attempts to automatically transform programs would eventually require manual intervention.
+This led to the investigation of the different challenges encountered and how to overcome them:
 
 \begin{itemize}
-    \item While equality saturation is powerful for reasoning within a given theory, its effectiveness is limited to known equalities. Automatically discovering new theories or extending existing ones remains challenging.
-    \item Handling conditions efficiently in the e-graph structure is not straightforward, limiting the applicability of equality saturation in scenarios involving complex logical conditions.
-    \item Applicability for theorem provers is still an open problem. While rewriting systems were successfully employed in theorem provers, equality saturation has still not made a big footprint in the field.
+    \item  The effectiveness of automatic deduction techniques, equality saturation included, is limited to the known lemmas.
+    Expanding this knowledge base automatically can potentially enhance the applicability of deductive reasoning systems.
+    \item It is not straightforward to handle conditions efficiently in the e-graph structure, limiting the applicability of equality saturation in scenarios involving conditional lemmas and definitions. 
+    Overcoming this limitation is crucial for applying equality saturation to additional tasks and improving its usefulness in some existing ones.
+    \item Applicability for general theorem provers is still an open problem. 
+    Some constraints, the two items above among them, remain.
+    Integrating equality saturation into theorem provers could potentially lead to more efficient and powerful automated reasoning tools.
 \end{itemize}
 
-This thesis aims to address these challenges and advance the field of deductive reasoning through novel applications and extensions of equality saturation. 
+This thesis addresses these challenges and aims to advance the field of deductive reasoning through novel applications and extensions of equality saturation. 
 
 % -------------- Thesy -------------------------
 
@@ -113,9 +113,10 @@ To that end, the concept of automatically expanding this knowledge base, known a
 Theory exploration can be defined as the task of automatically discovering new, interesting, and provably correct mathematical knowledge from a given set of axioms and definitions.
 Over the years, various approaches to theory exploration have been developed.
 
-Starting already in the 1970s, researchers have developed systems for potentially increasing the knowledge base by heuristically discovering concepts (\eg a circle, or prime numbers) and conjectures about them. ~\cite{amlenat1977automated,buchanan1981dendral}.
+Starting already in the 1970s, researchers have developed systems for potentially increasing the knowledge base by heuristically discovering concepts (\eg a circle, or prime numbers) and conjectures about them \cite{amlenat1977automated,buchanan1981dendral}.
 Generate-and-test methods, like the GRAPH THEORIST and HR systems \cite{epstein1988graphtheist,colton1999automatichr} generate conjectures, then also attempt to prove them, thus improving usability.
-All of these works depend greatly on the representation (or embedding)\SI{repr/embedding in what?} of the concepts to create conjectures and new concepts, due to the, often infinite,\SI{is it ok to place the commas like this} search space of conjectures to consider.
+All of these works depend greatly on the inner representation of the concepts and conjectures for efficiency in both memory use and computation time.
+It is especially important due to the often infinite search space of conjectures to consider.
 
 Newer methods attempt to deal with the search space explosion problem by using constrained synthesis and fast conjecture filtering, but do not attempt to recognize new concepts.
 IsaCoSy \cite{JAR2010:Johanssonisacosy}, uses constraint-based synthesis to generate conjectures while trying to maintain completeness.
@@ -128,19 +129,20 @@ First, it requires concrete examples to run, which QuickSpec partially solves by
 The second problem arises because observable equality may imply incorrect equalities leading to wrong conjectures, but further work, HipSpec \cite{hipster}, uses theorem provers on top of QuickSpec to circumvent correctness issues.
 Additional work went into extending support for conditionals, improving runtime using schemes, and infinite streams \cite{ESA2012:Montanoschemebased, hipstercond, einarsdottir2020template, 2018AISC:Einarsdottir}, but the basic limitations of creating examples, especially for conditional conjectures, such as conjectures about concepts, remain.
 
-Currently, theory exploration still faces challenges when trying to fulfill all three goals at once:\SI{these are not phrased as "goals"; either change the word or rephrase}
+Currently, theory exploration still faces challenges when trying to fulfill three important features at once:
+
 \begin{itemize}
     \item Efficiency: Generating and testing a large number of conjectures can be computationally expensive.
     \item Relevance: Many generated statements, while true, may not be useful or interesting.
     \item Completeness: Find all important theorems in a given domain. Especially challenging when considering conditional conjectures such as $sorted~list \implies min~list = head~list$, as they require generating more conjectures, and non-equality ones at that.
 \end{itemize}
 
-TheSy, one of the main contributions of this thesis, addresses these challenges by creating symbolic theory exploration based on equality saturation.
-Unlike previous approaches that either rely on concrete evaluation or don't use equality to shrink the search space, TheSy manages to do both by cleverly applying equality saturation.
-By representing a large space of equivalent expressions compactly in an e-graph, TheSy can simultaneously consider many potential lemmas. 
-Moreover, TheSy's integration with equality saturation provides a symbiotic relationship: as new lemmas are discovered, they can be immediately incorporated into the e-graph, potentially enabling the discovery of even more complex relationships thanks to equivalence reduction. 
+The \gls{thesy}, one of the main contributions of this thesis, addresses these challenges by creating symbolic theory exploration based on equality saturation.
+Unlike previous approaches that either rely on concrete evaluation or don't use equality to shrink the search space, \gls{thesy} manages to do both by cleverly applying equality saturation.
+By representing a large space of equivalent expressions compactly in an e-graph, \gls{thesy} can simultaneously consider many potential lemmas. 
+Moreover, \gls{thesy}'s integration with equality saturation provides a symbiotic relationship: as new lemmas are discovered, they can be immediately incorporated into the \gls{eqsat} process, potentially enabling the discovery of even more complex relationships thanks to the expanded knowledge base.
 This continuous expansion of the knowledge base is key to dealing with increasingly complex problems, potentially scaling up the theory exploration process.
-In \autoref{chap:thesy}, we will delve deeper into TheSy's architecture, algorithms, and its effectiveness in automated theory exploration, demonstrating how it advances the state of the art in expanding knowledge bases for automated reasoning systems.
+In \autoref{chap:thesy}, we will delve deeper into \gls{thesy}'s architecture, algorithms, and its effectiveness in automated theory exploration, demonstrating how it advances the state of the art in expanding knowledge bases for automated reasoning systems.
 
 % -------------- Colored E-graphs ----------
 
@@ -150,40 +152,50 @@ While e-graphs excel at representing and manipulating sets of unconditionally eq
 real-world scenarios involve conditionals, where the equivalence of expressions depends on certain conditions being met. 
 For example, consider the expression $min(x,y) + max(x,y)$.
 A human reasoner quickly realizes that whether $x < y$ or $x \geq y$, the result will be the same, $x + y$.
-But, for an automated reasoner, if no judgement of the sort exists, it will need to choose to split the reasoning process on $x < y$, and use the definition of $min$ and $max$ in each reasoning branch.
+But, an automated reasoner will need to choose to split the reasoning process on $x < y$, and use the definition of $min$ and $max$ in each reasoning branch.
 
-The main challenge lies in the fact that an e-graph represents a single global equality relation, and saying a fact like $x < y = true$ will affect all expression contained in it, including, for example, $max(x,~y)$.
-Reasoning about each case separately will require a separate e-graph.
+The main challenge lies in the fact that an e-graph represents a single global equality relation, and saying a fact like $x < y = true$ will affect all expressions referring to it, including, for example, $max(x,~y)$.
+Reasoning about each case separately will usually require a separate e-graph.
 Of course, it is possible to clone the e-graph,
 and thus have multiple equality relations at once.
 TheSy \cite{thesy} (part of this thesis) uses this cloning approach to handle different conditions. 
 When encountering a conditional, TheSy creates separate copies (clones) of the e-graph for each branch of the condition.
-Back to the example, given the expression $min(x,~y) + max(x,~y)$, TheSy would create two e-graph clones:
-1. One where $x < y$ is assumed true, and $min(x,~y) + max(x,~y)$ is simplified to $x + y$.
-2. Another where $x \geq y$ is assumed true, and $min(x,~y) + max(x,~y)$ is simplified to $y + x$, which is found equal to $x + y$ through the addition commutativity rule.
+In the example above, $min(x,~y) + max(x,~y)$, TheSy would create two e-graph clones:
+\begin{itemize}
+    \item One where $x < y$ is assumed true, and $min(x,~y) + max(x,~y)$ is simplified to $x + y$.
+    \item Another where $x \geq y$ is assumed true, and $min(x,~y) + max(x,~y)$ is simplified to $y + x$, which is found equal to $x + y$ through the addition commutativity rule.
+\end{itemize}
 
-This approach allows for powerful conditional reasoning, as each clone can apply rewrites and simplifications specific to its assumed condition. However, it comes at a significant cost in terms of memory usage and computational efficiency, especially when dealing with multiple nested conditions.
+This approach allows for powerful conditional reasoning, as each clone can apply rewrites and simplifications specific to its assumed condition. 
+However, it comes at a significant cost in terms of memory usage and computational efficiency, especially when dealing with multiple nested conditions.
 
 Several ad-hoc approaches have been developed to address this challenge, each with its own trade-offs.
-The original equality saturation work \cite{eqsat} introduced a local form of condition handling by a adding a new context under conditional flow control, where the environment (i.e. the equality relation and each variable) are duplicated.
-This is very useful for running optimizations, and is used for both $if$ statements and loops in E-PEGs (Equality-Program Expression Graphs).
+The seminal work on equality saturation in compilers~\cite{eqsat} introduced a local form of condition handling by a adding a new context under conditional flow control, where the environment (i.e. the equality relation and each variable) are duplicated.
+This is very useful for applying optimizations, and is used for both \textit{if} statements and loops in an \gls{epeg}.
 This allowed for some conditional reasoning, but was not a generally applicable solution.
-Another approach to conditional reasoning in e-graphs was introduced in a work combining abstract interpretation with e-graphs \cite{abstracteqsat}.
-They proposed the use of \emph{ASSUME} nodes to capture constraints and essentially separates the relevant sub-graphs under the constraint.
-This is a useful approach, that reused the main equality relation, but essentially leads to duplicating the e-graph under different ASSUME nodes, limiting it's applicability.
+Another approach was introduced in a work combining abstract interpretation with e-graphs \cite{abstracteqsat}.
+They proposed the introduction of special \emph{ASSUME} nodes to capture constraints and essentially separates the relevant sub-graphs under the constraint.
+This is a useful approach to conditional reasoning, that reused the main equality relation, but essentially leads to duplicating the e-graph under different ASSUME nodes, limiting its applicability.
 
 The challenges and limitations of existing approaches to conditional reasoning in e-graphs motivate the development of new techniques that can maintain the benefits of e-graphs while efficiently handling conditionals. 
-As part of this thesis colored e-graphs were developed, aiming to provide a more memory-efficient and flexible approach to representing and reasoning about conditional equivalences within the e-graph framework.
+As part of this thesis, a variant of \gls{egraphs}, \emph{colored e-graphs}, were developed, aiming to provide a more flexible and memory-efficient approach to representing conditional equivalences and reasoning about them within the e-graph framework.
 Colored e-graphs build upon the insights gained from previous approaches, seeking to combine the expressiveness of conditional reasoning with the efficiency and flexibility that have made e-graphs such a powerful tool in program optimization and automated reasoning. 
-By introducing a layered approach to representing multiple equality relations, colored e-graphs offer a promising solution to the challenges of conditional reasoning in equality saturation.
+
+\ES{Shachar I added some text here}
+The design of colored e-graphs is based on the observation that each conditional case we reason on usually only affects a small part of the e-graph.
+By introducing a layered approach to representing multiple equality relations, colored e-graphs achieve increased sharing of substructures in the presence of conditional reasoning.
+This leads to the ability to do either local or global conditional reasoning with a low cost to memory.
+Colored e-graphs also optimize the different e-graph operations such that it's performance is on par with the clone approach.
+By addressing the challenge of efficiently handling conditions in e-graph structures, colored e-graphs expand the applicability of equality saturation to more complex logical scenarios.
+A full description is given in \autoref{chap:colored-egraph}.
 
 % ------------------ LES is More -----------------------------------
 
 \section{Equality Saturation in Interactive Theorem Proving}
 
-Interactive theorem provers, also known as proof assistants, are software tools that aid in the development of formal proofs of mathematical theorems and the verification of complex software systems. 
+An \gls{itp}, also known as a proof assistant, is a software tool that aids in the development of formal proofs of mathematical theorems and the verification of complex software systems.
 Examples include Coq \cite{Coq:manual}, Isabelle/HOL \cite{Book2002:Nipkow}, and Lean \cite{lean}. 
-These systems provide a rigorous framework for expressing mathematical statements and constructing proofs, often using higher-order logic to allow for greater expressivity.
+These systems provide a rigorous framework for expressing mathematical statements and constructing proofs, often using \gls{hol} to allow for greater expressivity.
 
 In proof assistants, users typically guide the proof process by applying tactics or proof strategies. 
 However, as proofs become more complex, the manual effort required can be substantial. 
@@ -193,45 +205,45 @@ One significant challenge in this domain is the efficient search and application
 Proof assistants often come with extensive libraries containing thousands of lemmas and definitions. 
 The sheer volume of available knowledge, combined with the expressivity of higher-order logic, makes it extremely difficult for automated tools to identify and apply the most relevant facts for a given proof goal.
 
-To address this challenge, \emph{hammer} tools have been developed for various proof assistants. These tools, such as Sledgehammer for Isabelle/HOL \cite{sledgehammer} and CoqHammer \cite{coqhammer}, attempt to automatically prove goals by translating them to first-order logic and employing external automated theorem provers. 
+To address this challenge, \emph{hammer} tools have been developed for various proof assistants. 
+These tools, such as Sledgehammer for Isabelle/HOL \cite{sledgehammer} and CoqHammer \cite{coqhammer}, attempt to automatically prove goals by translating them to \gls{fol} and employing an external \gls{atp}. 
 While hammers have shown significant success, they face limitations in handling higher-order constructs and can struggle with proofs requiring complex combinations of lemmas.
 
 Equality saturation offers a promising approach to enhance automated reasoning in this context.
-Recent work on Guided Equality Saturation \cite{guidedeqsat} has shown how to make equality saturation more effective by using user provided rewrites and goal-directed heuristics to guide the saturation process. 
+Recent work on Guided Equality Saturation \cite{guidedeqsat} has shown how to make equality saturation more effective by using user-provided rewrites and goal-directed heuristics to guide the saturation process.
 
 We take a slightly different approach.
-Instead of attempting to create a manually applied tactic, we attempt to create a fully automatic Lightweight Equality Saturation (LES) prover, that can be used as an automatic reasoning framework in the context of proof assistants.
+Instead of attempting to create a manually applied tactic, we attempt to create a fully automatic \gls{les} prover, that can be used as an automated reasoning framework in the context of proof assistants.
 LES is designed as a fast, equality saturation-based automated reasoning tool that can integrate well in an interactive environment. 
-It is done by focusing on an intermediate representation of the high order logic formulas, and employing efficient e-graph operations for that representation.
+It is done by focusing on an intermediate representation of the higher order logic formulas, and employing efficient e-graph operations for that representation.
 To achieve that LES is integrated with CoqHammer, taking advantage of it's already optimized translation to first order logic.
-Thus, by being able to quickly handle search over large amounts of lemmas at once, we hope that LES will become a basic tool in more advanced tools.
+Thus, by being able to quickly handle search over large amounts of lemmas at once, we hope that LES will become a basic tool in more advanced techniques.
 
 % -------------- Contributions -------------
 
 \section{Contributions and Layout}
 
-This thesis advances the field of automated reasoning and equality saturation through three primary contributions:
+We present three primary contributions to the field of automated reasoning and equality saturation:
 
 \begin{enumerate}
     \item TheSy: A symbolic theory exploration system that leverages equality saturation to efficiently discover and prove new lemmas in mathematical theories. 
-    TheSy addresses the challenges of efficiency, relevance, and scale in theory exploration by using e-graphs to compactly represent and explore vast spaces of equivalent expressions.
+    TheSy applies a novel approach to theory exploration by compactly representing equivalent expressions using e-graphs and exploring vast spaces of conjectures by symbolic evaluation.
     \item Colored E-graphs: A novel extension to e-graphs that enables efficient conditional reasoning within the equality saturation framework. 
-    Colored e-graphs provide a memory-efficient and flexible approach to representing multiple conditional equality relations, overcoming limitations of previous methods such as graph cloning or PEGs.
+    Colored e-graphs introduce a compact and memory-efficient approach to simultaneously representing and manipulating multiple equivalence relations.
     \item LES (Lightweight Equality Saturation) Prover: A fast, equality saturation-based automated reasoning tool designed for integration with interactive proof assistants. 
-    LES demonstrates the potential of equality saturation in the domain of higher-order logic proving, providing an effective tool for automated reasoning in proof assistant environments.
+    LES applied equality saturation in the domain of proof assistants by carefully encoding higher-order logic formulas into an e-graph and set of rewrite rules.
 \end{enumerate}
 
-This thesis presents a series of advancements in the field of automated reasoning, all centered around the goal of creating a framework for tools that can fully and automatically apply deductive reasoning. 
+This thesis presents a series of advances in automated reasoning, all centered around creating a framework for tools that can fully and automatically apply deductive reasoning.
 They address fundamental challenges in automated reasoning, from expanding knowledge bases to handling conditional logic and applying theorem proving in higher-order logic environments.
-By enhancing the capabilities of equality saturation and expanding its applicability, we aim to push the boundaries of what's possible in automatic reasoning and artificial intelligence.
-Our work aims to push the boundaries of what's possible in automatic reasoning and artificial intelligence.
+Our work aims to push the boundaries of what is possible in automated reasoning and artificial intelligence.
 
 The thesis is structured to present these contributions in a logical progression:
 \autoref{chap:prelims} provides essential background on e-graphs and equality saturation.
-\autoref{chap:thesy} introduces TheSy, our approach to automatic knowledge expansion through theory exploration.
-\autoref{chap:colors} presents Colored E-graphs as a powerful new tool for conditional reasoning in equality saturation.
+\autoref{chap:thesy} introduces TheSy, our approach to automatic symbolic theory exploration.
+\autoref{chap:colors} presents colored e-graphs, a new tool for conditional reasoning in equality saturation.
 \autoref{chap:les} introduces the LES Prover, demonstrating how equality saturation can be applied effectively in the context of interactive theorem proving.
-\autoref{chap:conclusion} concludes the thesis by reflecting on the implications of our work and outlining future research directions.
+\autoref{chap:conclusion} Summarizes this thesis and outlines future research directions.
 
 \begin{comment}
 Please note that the \texttt{iitthesis} class has several options when you use it, such as:

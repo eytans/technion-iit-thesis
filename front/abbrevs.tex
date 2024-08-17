@@ -78,3 +78,175 @@ description=A technology used in data storage devices]%
 % in this file appear in the final list - rather than just the ones you
 % use in the thesis
 %\keepUnusedAbbreviations
+\newabbreviation[%
+  type=notation,
+  category=notation-category,%
+  description={Automated reasoning technique that compactly represents sets of equivalent expressions}]%
+  {eqsat}{EqSat}{Equality Saturation}
+
+\newabbreviation[%
+  type=notation,
+  category=notation-category,%
+  description={Data structure that efficiently represents sets of equivalent expressions}]%
+  {egraphs}{e-graphs}{Equality Graphs}
+
+\newabbreviation[%
+  type=notation,
+  category=notation-category,%
+  description={Equality Classes}]%
+  {eclasses}{e-classes}{Equality Classes}
+
+\newabbreviation[%
+  type=notation,
+  category=notation-category,%
+  description={Theory exploration system leveraging equality saturation}]%
+  {thesy}{TheSy}{Theory Synthesizer}
+
+\newabbreviation[%
+  type=notation,
+  category=notation-category,%
+  description={Extension to e-graphs for efficient conditional reasoning}]%
+  {cegraph}{Colored E-graph}{Colored Equality Graph}
+
+\newacronym[%
+  category=notation-category,%
+  description={Equality saturation-based automated reasoning tool for proof assistants}]%
+  {les}{LES}{\emph{Lightweight Equality Saturation}}
+
+\newacronym[%
+  category=notation-category,%
+  description={Interactive Theorem Prover}]%
+  {itp}{ITP}{Interactive Theorem Prover}
+
+\newacronym[%
+  category=notation-category,%
+  description={Automated Theorem Prover}]%
+  {atp}{ATP}{Automated Theorem Prover}
+
+\newacronym[%
+  category=notation-category,%
+  description={First-Order Logic}]%
+  {fol}{FOL}{First-Order Logic}
+
+\newacronym[%
+  category=notation-category,%
+  description={Higher-Order Logic}]%
+  {hol}{HOL}{Higher-Order Logic}
+
+\newacronym[%
+  category=notation-category,%
+  description={Calculus of Inductive Constructions}]%
+  {cic}{CIC}{Calculus of Inductive Constructions}
+
+\newacronym[%
+  category=notation-category,%
+  description={Pure Type System}]%
+  {pts}{PTS}{Pure Type System}
+
+\newacronym[%
+  category=notation-category,%
+  description={Proof Irrelevant Pure Type System}]%
+  {pipts}{piPTS}{Proof Irrelevant Pure Type System}
+
+\newacronym[%
+  category=notation-category,%
+  description={Equality-Program Expression Graphs}]%
+  {epeg}{E-PEG}{Equality-Program Expression Graphs}
+
+\newglossaryentry{symb:congruence}{%
+  type=notation,%
+  category=notation-category,%
+  name=\ensuremath{\sim},%
+  description={Congruence relation in e-graphs}%
+}
+
+\newglossaryentry{symb:forall}{%
+  type=notation,%
+  category=notation-category,%
+  name=\ensuremath{\forall},%
+  description={Universal quantification}%
+}
+
+\newglossaryentry{symb:exists}{%
+  type=notation,%
+  category=notation-category,%
+  name=\ensuremath{\exists},%
+  description={Existential quantification}%
+}
+
+\newglossaryentry{symb:implies}{%
+  type=notation,%
+  category=notation-category,%
+  name=\ensuremath{\Rightarrow},%
+  description={Logical implication}%
+}
+
+\newglossaryentry{symb:iff}{%
+  type=notation,%
+  category=notation-category,%
+  name=\ensuremath{\Leftrightarrow},%
+  description={If and only if (logical equivalence)}%
+}
+
+\newglossaryentry{symb:eclass}{%
+  type=notation,%
+  category=notation-category,%
+  name=\ensuremath{[e]},%
+  description={The equality class (e-class) containing the expression $e$ in an e-graph. It represents all expressions that are known to be equivalent to $e$}%
+}
+
+\newglossaryentry{rewrite-rule}{%
+  type=notation,%
+  category=notation-category,%
+  name={\ensuremath{\mathcal{R} = t_1 \overset{.\,}{\rightarrow} t_2}},%
+  symbol={\ensuremath{\mathcal{R} = t_1 \rwto t_2}},%
+  description={A rewrite rule $\mathcal{R}$ representing a universally quantified formula of the form $\forall x_1, \ldots, x_n.~t_1 \implies t_2$,
+    and all free variables are implicitly quantified.}%
+}
+
+\newglossaryentry{context-filling}{%
+  type=notation,%
+  category=notation-category,%
+  name={\ensuremath{C[t]}},%
+  description={Context filling operation, where $C$ is a context (a term with a single hole) and $t$ is the term used to fill the hole}%
+}
+
+\newglossaryentry{substitution}{%
+  type=notation,%
+  category=notation-category,%
+  name={\ensuremath{t\sigma}},%
+  description={Substitution operation, where $\sigma$ is a mapping from variables to terms, applied to replace variables in the term $t$}%
+}
+
+\newglossaryentry{metavariable}{%
+  type=notation,%
+  category=notation-category,%
+  name={\ensuremath{?v_i}},%
+  description={A metavariable, represented as $?v_i$, is used as a hole in a pattern. 
+  A pattern is a term with zero or more such holes.}%
+}
+
+\newacronym[%
+  category=notation-category,%
+  description={Rules that specify how to transform one term into another equivalent term in a formal system.}]%
+  {rr}{r.r.}{\emph{rewrite rules}}
+
+  \newacronym[%
+  category=notation-category,%
+  description={A rewrite rule that includes a precondition. It takes the form $\phi \Rightarrow t_1 \rwto t_2$, where $\phi$ is a condition that must be satisfied for the rule to be applied.}]%
+  {crr}{c.r.r.}{\emph{conditional rewrite rule}}
+
+  \newacronym[%
+  category=notation-category,%
+  description={Symbolic Observational Equivalence}]%
+  {soe}{SOE}{\emph{Symbolic Observational Equivalence}}
+
+\newacronym[%
+  category=notation-category,%
+  description={A composite data type defined by specifying a collection of constructors, each with its own arguments.}]%
+  {adt}{ADT}{Algebraic Data Type}
+
+\newacronym[%
+  category=notation-category,%
+  description={The use of computer systems to assist in the creation, modification, analysis, or optimization of a design.}]%
+  {cad}{CAD}{Computer-Aided Design}

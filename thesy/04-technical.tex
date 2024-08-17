@@ -90,7 +90,7 @@ SyGuE is the sub-problem of iterating over \emph{all distinct} programs in the l
 SyGuS solvers may be improved using a smart search algorithm, while SyGuE solvers need an efficient way to eliminate duplicate terms, which may depend on the definition of program equivalence.
 We implement our variant of SyGuE, over the equivalence relation $\TRewriteSysRelationTiny{\!}{\!\!}$, using the aforementioned e-graph:
 by applying and re-applying rewrite rules,
-provably equivalent terms are naturally \emph{merged} into hyper-vertices, representing equivalence classes.
+provably equivalent terms are naturally \emph{merged} into e-classes.
 
 \subsection{Conjecture Inference \& Screening}
 \label{overview:conjecture}
@@ -226,7 +226,7 @@ If both sides of the equality conjecture belong to the same equivalence class, t
 
 The conjectures that remain are those equalities $t_1\maybeEqTiny t_2$ where $t_1$ and $t_2$ got merged for all the assignments $\Symexes{\tau}$ to some $\pholder{1}{\tau~\,}$, and, furthermore, $t_1$ and $t_2$ themselves \emph{were not} merged in placeholder form,
 prior to substitution.
-Such conjectures, if true, are guaranteed to increase the knowledge represented by $\Eqs$ as (at least) the equality $t_1=t_2$ was not previously provable using term rewriting and congruence closure.
+Such conjectures, if true, are guaranteed to increase the knowledge represented by $\Eqs$ as (at least) the equality $t_1=t_2$ was not previously provable using equality saturation.
 
 \subsection{Induction Prover}
 \label{overview:induction}
@@ -327,7 +327,7 @@ is included in \autoref{overview:induction-example} for completeness of the pres
 \end{figure}
 
 It is worth noting that the conjecture inference, screening and induction phases
-utilize a common reasoning core based on rewriting and congruence closure.
+utilize a common reasoning core based on equality saturation.
 In situations where the definitions include conditions such as
 $\clrterm\tmatch~p\,x$ in \autoref{overview:induction-example} (in this case, desugared from $\clrterm\tif~p\,x$), the prover also performs automatic case split
 and distributes equalities over the branches.
@@ -377,7 +377,7 @@ The third, outer loop is more interesting: as equalities are made into
 rewrite rules, additional equations may now pass the inference phase,
 since the symbolic evaluation core can equate more terms based on this
 additional knowledge.
-The fourth resonates with the third, applying the new rewrite rules acts as an equality reduction mechanism, reducing the number of hyperedges added to the e-graph during term generation.
+The fourth resonates with the third, applying the new rewrite rules acts as an equality reduction mechanism, reducing the number of e-nodes added to the e-graph during term generation.
 
 It is worth noting that while concrete observational equivalence uses
 a trivially simple equivalence checking mechanism with the trade-off

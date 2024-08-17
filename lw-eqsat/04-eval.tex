@@ -1,13 +1,18 @@
 \section{Evaluation}
 \label{les:eval}
 
+We evaluate our approach by implementing it as an additional prover in CoqHammer, and run all the provers CoqHammer works with on a benchmark created from the MathComp library.
+For that purpose, we present a new tool to create benchmarks for Coq tactics and tools.
+Our tool is based on Coq-LSP which is a language server protocol implementation and a continuation of SerAPI \cite{serapi}.
+The tools main advantage is stability, as it is a simple plugin to Coq-LSP, it will work as long as Coq-LSP can compile the coq file. 
+When run, it will run the tactic under check on each proof goal available, simplifying the creation of new benchmarks to the simple act of running the tactic.
 
+We use a built in mode from CoqHammer to run all translation options for each proof goal into a TPTP file \cite{sutcliffe2017tptp}, where the options are different ways to perform premise selection.
+We then run each of the provers on all translated goals.
+
+All the experiments were conducted on 64 core AMD EPYC 7742 processor with 512 GB RAM.
 
 \subsection{Implementation Optimizations}
-
-% TODO: add about the equality  conditions can be simplified by equality
-Equality in Rewrite Rules: LES offers two modes for handling equalities in rewrite rule conclusions. In the "fast" mode, each equality generates two rewrite rules, one for each direction. In the more powerful "generative" mode, applicable when preconditions bind all free variables, a single rule is created that concludes both sides of the equality when preconditions are met. This latter mode is particularly effective in generating terms necessary for proof discovery, such as applying commutativity of addition given only the knowledge that two terms are natural numbers.
-These refinements allow LES to capture and reason about subtle logical relationships that might be lost in a more naive translation. The HasProof operator, in particular, enables LES to distinguish between the existence of a proposition and the existence of its proof, a crucial distinction in many Coq proofs.
 
 To ensure practical applicability, LES incorporates several key optimizations:
 Constant Axiom Filtering: Large constant axioms are filtered based on size before addition to the e-graph. This prevents size blowup from single, expansive axioms (e.g., 100 + 1 = 101) that could lead to numerous spurious matches and significantly slow down the proving process.

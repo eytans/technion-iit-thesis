@@ -119,11 +119,11 @@ interacts badly with deeply nested types} [...] \textit{will generate extremely 
 Following are two example scenarios that attempt to represent cases from software systems where structured data types and complicated APIs exist:
 (i)~A series of tree data-types $T_i$ where each $T_i$ is a tree of height $i$ with $i$ children of type $T_{i-1}$, and the base case is an empty tree.
 Creating concrete examples for $T_i$ will be resource expensive, as each tree has $O(i!)$ nodes, and each node requires a value.
-(ii)~An ADT (Algebraic Data Type) $A$ with multiple fields where each can contain a large amount of text or other ADTs, and a function over $A$ that only accesses one of the fields.
+(ii)~An \gls{adt} $A$ with multiple fields where each can contain a large amount of text or other ADTs, and a function over $A$ that only accesses one of the fields.
 Even if evaluating the function is fast, fully creating $A$ is expensive and will impact the theory exploration run-time.
 
 %A common solution is to use abstraction to simplify ‘reasoning’. One possibility is to abstract the domain of possible values. ‘Possibly add examples of such abstractions’.
-This paper presents a new symbolic theory exploration approach that takes advantage of the characteristics of induction-based proofs.
+This chapter presents a new symbolic theory exploration approach that takes advantage of the characteristics of induction-based proofs.
 To overcome the blowup in the space of possible values, we make use of \emph{symbolic values}, which contain interpreted symbols, uninterpreted symbols, or a mixture of the two. 
 Conceptually, each symbolic value is an abstraction representing (infinitely) many possible values. 
 This means that preexisting knowledge on the symbolic value can be applied without fully creating interpreted values.
@@ -178,15 +178,14 @@ $}
 
 \medskip
 \begin{myparagraph}{Main contributions}
-This paper provides the following contributions:
-%\ES{We didn't contribute anything else? A method for comparing uninterpreted terms? Maybe split method for theory synthesis and implementation, Evalation method for theory exploration techniques? we need to check hipspec, isaplanner and isascheme to see how they compared}
+This chapter provides the following contributions:
 \begin{itemize}[topsep=2pt, leftmargin=1.5em]
 %    \item A definition of a \emph{knowledge base}, and what it means to be a \emph{knowledge extension} relative to an underlying reasoning method.
 %    New knowledge is said to extend exiting knowledge if it can be used as an enabler for deriving new conclusions using the same underlying reasoning, conclusions that could not be reached using the initial knowledge base.
 %    This provides a conceptual framework for theory exploration through use of formal methods.
     \item A system for \emph{theory synthesis} using symbolic values to take advantage of value abstraction.
     Our implementation, \TheSy, can discover more lemmas than were found by testing-based tools, while being faster in most cases.
-    \item A technique to compare universally quantified terms using term rewriting techniques and a given set of lemmas, called \emph{symbolic observational equivalence} (SOE). 
+    \item A technique to compare universally quantified terms using term rewriting techniques and a given set of lemmas, called \gls{soe}. 
     SOE overapproximates term equalities deducible by the given lemmas (\ie, will find more equalities), thus can be used for equality reduction in context of uninterpreted values, enabling fully symbolic reasoning over a large set of terms.
     %\item \ES{SOE}Definition of an interesting sub-problem, \emph{Syntax-Guided enumeration} (SyGuE) that emerges from our treatment of lemma discovery, but is useful for synthesis tasks as well as verification (such as for quantifier instantiation and invariant inference).
     %Broadly, it refers to an exhaustive generation of programs defined by a given vocabulary, modulo a custom equivalence relation---a form of pruning known as \emph{equivalence reduction}.

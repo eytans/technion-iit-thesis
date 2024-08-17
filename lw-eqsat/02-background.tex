@@ -64,7 +64,7 @@ This separation is important for several reasons:
 \item Proof Opacity: In Prop, we care only about the existence of a proof, not its specific form. 
 This allows for more efficient proof checking and equality comparisons.
 \item Program Extraction: The separation allows for the extraction of computational content from proofs, discarding the purely logical parts.
-\item Impredicativity: Prop is impredicative, allowing for powerful logical constructions while still maintaining consistency.
+\item Impredicativity: Prop is impredicative, allowing for powerful logical constructions\SI{this is a bit vague. I am not sure I know what constructions are enabled by this that were not possible with predicative Prop} while still maintaining consistency.
 \end{enumerate}
 This structure results in a proof-opaque pure type system, providing a powerful framework for both computation and logical reasoning. 
 The type checker in these systems verifies that a given term (proof) correctly inhabits its claimed type (proposition), leveraging the Curry-Howard correspondence to ensure the validity of mathematical arguments expressed in the system.
@@ -72,8 +72,8 @@ The type checker in these systems verifies that a given term (proof) correctly i
 \subsection{Hammer Systems}
 
 Hammer systems have emerged as powerful tools for automating proof discovery in ITPs. 
-They take advantage of strong first order theorem provers, and attempt to use them in the context of the expressive high order logic used in the ITP.
-While the theorem provers were very successfully in many applications, working on an environment of definitions, axioms, and lemmas from some higher order logic, $\Gamma$, requires a few extra steps before it can be applied successfully.
+They leverage the presence of powerful first-order theorem provers, and attempt to use them in the context of the expressive high order logic used in the ITP.
+While the theorem provers were very successfully adopted to many applications, working on an environment of definitions, axioms, and lemmas from some higher order logic, $\Gamma$, requires a few extra steps before it can be applied successfully.
 First, it is common for $\Gamma$ to be very large, making the application of the full environment range from difficult to infeasible.
 Secondly, the translation from the expressive higher order logic of the ITP to first order can significantly enhance amount of successful applications.
 Hammers are typically built from three main stages: premise selection to reduce the size of $\Gamma$, translation to first-order logic, and proof reconstruction to verify resulting proof in the trusted kernel.

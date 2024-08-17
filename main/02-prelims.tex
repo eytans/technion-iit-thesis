@@ -2,9 +2,9 @@
 \label{chap:prelims}
 
 This chapter introduces the fundamental concepts of rewriting systems, e-graphs, and equality saturation, which form the foundation for the contributions presented in this thesis. 
-For this chapter we assume a term language $L$ where terms are constructed using \emph{function symbols}, each with its designated arity.
-We use $f^{(r)}\in\Sigma[L]$ to say that $f$ is
-in the \emph{signature} of $L$ and has arity $r$.
+For this chapter we assume a term language $\Lang$ where terms are constructed using \emph{function symbols}, each with its designated arity.
+We use $f^{(r)}\in\Sigma[\Lang]$ to say that $f$ is
+in the \emph{signature} of $\Lang$ and has arity $r$.
 
 \section{Term Rewriting Systems}
 \label{prelim:term-rewriting}
@@ -13,11 +13,12 @@ Term rewriting systems are fundamental in automated reasoning, program transform
 They provide a formal framework for manipulating symbolic expressions, allowing us to systematically transform complex expressions into simpler or more useful forms. 
 In the context of this thesis, equality saturation builds upon and enhances term rewriting systems, while maintaining similar underlying semantics, thus we briefly formalize rewriting systems here.
 
-We assume a formal language $\Lang$ of terms over some vocabulary of symbols. A rewrite rule is a universally quantified formula of the form:
+We assume a formal language $\Lang$ of terms over some vocabulary of symbols. 
+A rewrite rule is a universally quantified formula of the form:
 
-\[ \forall x_1, \ldots, x_n. t_1 \rwto t_2 \]
+\[ \forall x_1, \ldots, x_n. t_1 \implies t_2 \]
 
-We use the notation $\Rewrite = t_1 \rwto t_2$ as a shorthand, with the understanding that all free variables are implicitly quantified.
+We use the notation \gls{rewrite-rule} as a shorthand, with the understanding that all free variables are implicitly quantified.
 For a semantic equality law $t_1 = t_2$, we typically assume both $t_1 \rwto t_2$ and $t_2 \rwto t_1$ exist as rewrite rules. 
 Note, in the context of this thesis, we assume that all terms in rewrite rules are closed under the implicit universal quantification, i.e., there are no existential quantifiers in rewrite rules.
 This of course is not always true, but in this context we do not support rewriting with existential quantifiers due to its complexity, hence it is just treated as some uninterpreted function symbol.
@@ -30,8 +31,8 @@ $\RewriteRelation{}{}$ such that $\RewriteRelation{s_1}{s_2} \iff s_1=C[t_1\sigm
 for some context $C$ and substitution $\sigma$ for the universally quantified variables of $t_1, t_2$.
 where:
 \begin{itemize}
-    \item A \emph{context} $C$ is a term with a single hole, and $C[t]$ denotes the term obtained by filling the hole with $t$.
-    \item A \emph{substitution} $\sigma$ is a mapping from variables to terms, applied to replace variables in an expression.
+    \item A \emph{context} $C$ is a term with a single hole, and \gls{context-filling} denotes the term obtained by filling the hole with the term $t$.
+    \item A \emph{substitution} $\sigma$ is a mapping from variables to terms, applied to replace variables in an expression $t$, written as \gls{substitution}.
 \end{itemize}
 \end{definition}
 
@@ -90,8 +91,8 @@ It's important to note that some rules, like $R_2$ (commutativity), could lead t
 \section{E-graphs}
 \label{perlims:e-graphs}
 
-E-Graphs, short for equality graphs, are data structures that efficiently represent sets of equivalent expressions. 
-Originally developed for use in automated theorem proving \cite{egraphsnelson1980fast}, E-Graphs have found applications in various domains, including program optimization \cite{eqsat}, program synthesis \cite{herbie}, and theory exploration \cite{thesy}.
+E-graphs, short for equality graphs, are data structures that efficiently represent sets of equivalent expressions. 
+Originally developed for use in automated theorem proving \cite{egraphsnelson1980fast}, e-graphs have found applications in various domains, including program optimization \cite{eqsat}, program synthesis \cite{herbie}, and theory exploration \cite{thesy}.
 
 \begin{definition}[E-graph]
 An e-graph $\mathcal{G}$ over a language $\Lang$ with signature $\Sigma$ is a tuple $\mathcal{G} = (\Lang, S, \cong)$, where:
@@ -104,15 +105,15 @@ We say that a term $t \in \Lang$ is "contained" in the e-graph if $t \in S$.
 \end{definition}
 
 \begin{definition}[Congruence Relation]
-A congruence relation $\cong$ over a language $\Lang$ with signature $\Sigma$ is an equivalence relation that is closed under the function symbols in $\Sigma[L]$.
+A congruence relation $\cong$ over a language $\Lang$ with signature $\Sigma$ is an equivalence relation that is closed under the function symbols in $\Sigma[\Lang]$.
 This property is known as \emph{congruence closure}. 
-Formally, for any $f^n \in \Sigma[L]$ and terms $t_1, \ldots, t_n, s_1, \ldots, s_n \in \Lang$:
+Formally, for any $f^n \in \Sigma[\Lang]$ and terms $t_1, \ldots, t_n, s_1, \ldots, s_n \in \Lang$:
 \[
 (\forall i \leq n.~t_i~\cong~s_i) \implies f(t_1, \ldots, t_n)~\cong~f(s_1, \ldots, s_n)
 \]
 \end{definition}
 
-The maintenance of congruence closure in e-graph as an invariant significantly influences the design and implementation of e-graph actions.
+The maintenance of congruence closure in e-graphs as an invariant significantly influences the design and implementation of e-graph actions.
 The egg library~\cite{egg} revolutionizes the application of e-graphs by explicitly supporting the equality saturation workflow.
 It enables the periodic maintenance of congruence closure, via \emph{deferred rebuild}, allowing for the amortization of associated rebuilding costs.
 
@@ -127,10 +128,10 @@ These structures collectively underpin the functionalities integral to the opera
 This information is later used to canonicalize the keys and values of the hash-cons. It essentially represents the equivalence relation part of $\cong$.
 %
 % E-Class map
-\item The \underline{e-class map} stores the structure of the e-graph.
+\item The \underline{e-class map} $M$ stores the structure of the e-graph.
 For each e-class id, the map keeps all the e-nodes that are contained therein.
 E-nodes are similar to AST nodes except that their children point to e-class ids instead of containing a single sub-term each. 
-That is, an e-node represents an application $f(x_1,\ldots,x_n)$ for $f^n \in \Sigma[L]$ where each $x_i$ represents an e-class id.
+That is, an e-node represents an application $f(x_1,\ldots,x_n)$ for $f^n \in \Sigma[\Lang]$ where each $x_i$ represents an e-class id.
 % 
 % Hash-Cons
 \item The \underline{hash-cons} table maps e-nodes to their containing e-class id.
@@ -140,10 +141,10 @@ That is, whenever e-classes are merged one of their ids becomes ``the'' represen
 
 An e-class with id $e$ represents a set of terms defined recursively as:
 \begin{align*}
-L(e) &= \{f(t_1,..,t_k)~|~ \\ 
-     & \qquad f(e_1,..,e_k)\in M(e), t_i\in L(e_i)\mbox{~for~}i=1..k\}
+\Lang(e) &= \{f(t_1,..,t_k)~|~ \\ 
+     & \qquad f(e_1,..,e_k)\in M(e), t_i\in \Lang(e_i)\mbox{~for~}i=1..k\}
 \end{align*}
-We will use the notation $[t]$ to refer to e-class id where $t\in L([t])$.
+We will use the notation $[t]$ to refer to e-class id where $t\in \Lang([t])$.
 
 \begin{example}
 The terms $\tmax(x, y)$ and $x - y$ are both represented in the e-graph in \autoref{overview:egraph-max}(a) using e-classes $\ecid5$ and $\ecid6$, respectively, with  the following e-nodes:
@@ -191,7 +192,7 @@ A significant contribution by egg is the concept of deferred (and thus periodic)
 This periodic rebuilding is highly efficient and well-suited for equality saturation.
 % (4) E-matching
 \item  \underline{E-matching} - Looking up a \emph{pattern} in the set of terms represented by the e-graph in a top-down manner, traversing the e-nodes downward via the e-class map.
-A pattern is a term with (zero or more) \emph{holes} represented by metavariables $?v_{1..k}$.
+A pattern is a term with (zero or more) \emph{holes} represented by metavariables \gls{metavariable}.
 When talking about formulas from universally quantified formulas, the universally bound variables are treated as metavariables.
 For example, $(?v_1+1)\cdot ?v_2$ is a pattern.
 Pattern lookup is important for rewriting in equality saturation.
@@ -202,7 +203,7 @@ Pattern lookup is important for rewriting in equality saturation.
 Equality Saturation is a technique that leverages e-graphs to perform exhaustive application of rewrite rules without relying on heuristics to choose which rewrites to prefer or committing to any particular sequence of rewrites.
 
 \subsection{Rewriting}
-We assume a background set of symbolic \emph{rewrite rules} (r.r.), each of the form $t\rwto s$,
+We assume a background set of symbolic \gls{rr}, each of the form $t\rwto s$,
 where $t$ and $s$ are patterns as explained in e-matching operation item above.
 A \emph{match} $\sigma$ of pattern $t$ on the e-graph, is an assignment mapping metavariables to e-class ids.
 $t\sigma$ represents an e-node, and we will denote its equality class as $[t\sigma]$.
@@ -213,7 +214,7 @@ Ideally, the set eventually \emph{saturates}, in which case the e-graph now desc
 terms that are rewrite-equivalent.
 We point out that in many situations, the e-graph keeps growing as a result of rewrites and never gets saturated---so the number of successive rewrite iterations, or ``rewrite depth'', has to be bounded.
 
-A \emph{conditional rewrite rule} (c.r.r.)~\cite{jcss/Bergstra} is a natural extension of a r.r. that has the following form:
+A \gls{crr}~\cite{jcss/Bergstra} is a natural extension of a r.r. that has the following form:
 $\varphi \Rightarrow t \rwto s$
 where $\varphi$ is a precondition for rewriting $t$ to $s$. For example, the rules for $max$ are:
 ${?x} > {?y} \Rightarrow \tmax({?x}, {?y}) \rwto {?x}$ and 
@@ -227,10 +228,10 @@ must be unified with Boolean $\ttrue$ in order for the rewrite to be applied.
 The equality saturation process, as implemented in the egg library \cite{egg}, operates in iterations. Each iteration consists of three main steps:
 
 \begin{enumerate}
-    \item \textbf{Matching:} All rewrite rules are matched against the current e-graph, collecting substitutions $\sigma$ for each rule. 
+    \item \textbf{Matching:} All rewrite rules are matched against the current e-graph, collecting a substitution $\sigma$ for each rule. 
     Importantly, the e-graph is not updated during this phase.
     \item \textbf{Applying:} All collected matches are applied to the e-graph. 
-    This step adds new terms to the e-graph and updates the equality relation.
+    This step adds new terms to the e-graph and updates the congruence relation.
     \item \textbf{Rebuilding:} The e-graph is rebuilt to restore the congruence closure property.
 \end{enumerate}
 
@@ -241,22 +242,13 @@ Formally, if we denote the e-graph after the $i$-th iteration as $\mathcal{G}_i 
 
 \begin{itemize}
     \item $S_i \subseteq S_{i+1}$ (the set of terms grows monotonically)
-    \item $\mathcal{\cong}_i \subseteq \mathcal{\cong}_{i+1}$ (the equality relation becomes finer)
+    \item $\mathcal{\cong}_i \subseteq \mathcal{\cong}_{i+1}$ (the congruence relation becomes coarsened)
     \item For any terms $t_1, t_2 \in S_i$, if $t_1 \mathcal{\cong}_i t_2$, then $t_1 \TRewriteSysRelation{} t_2$
 \end{itemize}
 
 The key advantage of this approach is that it allows for the efficient application of many rewrite rules without the need to rebuild the e-graph after each individual rule application. This is particularly beneficial when dealing with large sets of rewrite rules or when exploring many possible rewrite sequences.
 
 \begin{comment}
-A preliminaries chapter is not necessary, but it may be a good idea to use it for presenting your theoretical/mathematical framework in a more detailed and technical way than the introduction, and to perhaps establish some basic lemmata/observations common to multiple chapters of your thesis.
-
-\section{Some section}
-
-Let's define some concept we'll be using throughout the thesis.
-
-\begin{definition}
-The \emph{von Neumann model} of a computer, also known as the \emph{Princeton architecture} is an architecture for digital computers, which consists of a processing units, containing an ALU and processing registers; a control unit consisting of an instruction register and a program counter; a memory unit which stores both data and instructions; and input-and-output mechanisms.
-\end{definition}
 
 \section{Acronyms and abbreviations}
 
@@ -272,4 +264,5 @@ In the body of your thesis, your first use of a term will typically be where you
 	\item It adds the defined term --- \gls{DIY} --- in parentheses, after the definition.
 \end{itemize}
 In later invocations of \verb|\gls{DIY}|, only the short form (\gls{DIY}) will be printed, not the definition, and no parentheses. (This also means that if you move text around in your thesis you don't have to worry about defining on first use - that's already taken care of.) 
+
 \end{comment}

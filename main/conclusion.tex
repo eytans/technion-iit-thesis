@@ -1,23 +1,57 @@
-\chapter{Conclusion and open questions}
+\chapter{Conclusion and Future Directions}
 \label{chap:conclusion}
 
-This kind of chapter can include may different things (or only some of them):
-\begin{itemize}
-\item Discussion of results
-\item Conclusions from the results or from the process in general
-\item Open questions for future research, resulting from the research performed or from the results obtained
-\end{itemize}
+This thesis has explored the application of equality saturation techniques to enhance automatic deductive reasoning across various domains.
+We have developed novel approaches that address key challenges in this field.
 
-But not things like the bibliography or other back matter which is generated outside of this chapter.
+The first basic challenge we faced when attempting to create automatic deduction tools, was incomplete background theory. 
+Deductive reasoning is limited by the background theory, and thus the problem of an incomplete one needed addressing.
+TheSy (presented in \autoref{chap:thesy}), our symbolic theory exploration system, represents a significant advancement in the field of theory exploration.
+By leveraging equality saturation techniques, TheSy efficiently discovers and proves new lemmas in mathematical theories. 
 
+Our experiments demonstrated that TheSy can discover a broader knowledge base than previous testing-based approaches while being faster in most cases. 
+This efficiency gain is particularly pronounced when dealing with complex data types and function compositions, where concrete testing methods often struggle.
 
-\section{Some conclusion}
+One significant issue encountered with TheSy was trying to perform conditional reasoning in combination with equality saturation.
+Existing solutions provide either mechanisms to have some local conditional reasoning, or create a copy of the underlying e-graph leading to higher memory consumption.
+To address this challenge within the equality saturation framework, we introduced colored e-graphs (presented in \autoref{chap:colors}).
+This novel extension to e-graphs provides a memory-efficient and flexible approach to representing multiple equality relations within a single structure. Key features of colored e-graphs include:
+A layered approach to representing multiple congruence relations, with each layer corresponding to a specific condition or assumption;
+efficient sharing of common substructures, reducing memory overhead;
+specialized algorithms for merging, rebuilding, and e-matching operations that take advantage of the layered structure.
 
-Here is what I conclude.
+Our evaluation showed that Colored E-graphs can significantly reduce memory usage compared to maintaining separate e-graphs for different conditions, while maintaining similar runtime performance. 
+This advancement opens new possibilities for applying equality saturation techniques to problems involving complex conditional reasoning.
 
-\section{Some open questions}
+Even though we presented solutions for basic problems encountered in automated deductive reasoning, and specifically in equality saturation, the challenge of applying equality saturation as a theorem prover remained.
+The main advantage of the equality saturation approach is in its ability to deal with a huge background theory, but it suffers from no other builtin reasoning techniques, limiting it to the said background theory.
+Thus, we developed the Lightweight Equality Saturation (LES) prover in the domain of interactive theorem proving (presented in \autoref{chap:les}).
+In the context of interactive theorem proving, applying automatic theorem provers is considered difficult due to the vast amount of available lemmas and theorems.
+LES bridges the gap between automated reasoning and interactive proof assistants by providing a fast, automated reasoning tool that integrates well with interactive environments. 
 
-\paragraph{A question in brief.} In \autoref{chap:firstchap} we explored a certain subject, but what about this-or-that idea? Perhaps it is worth exploring. Can one produce interesting results?
+Our experiments with LES showed promising results in automatically proving theorems within the Coq proof assistant, demonstrating its potential to enhance the capabilities of ITPs.
+Even though, there are still many open directions to enhance it's capabilities.
 
-\paragraph{A second question in brief.} A broader exposition of the question and indications of directions or ideas regarding its resolution.
+\section{Open Questions and Future Directions}
 
+While our work has made significant strides in applying equality saturation to automatic deductive reasoning, several important questions and research directions remain open for future exploration:
+
+A key challenge for future research is to extend symbolic theory exploration to efficiently discover conditional lemmas. 
+For example, can we use colored e-graphs to find lemmas such as a sorted list is increasing? 
+This presents challenges in both scale and discovery of conditions and lemmas.
+The potential of colored e-graphs opens up several directions for exploring their effectiveness in other tasks, such as global program optimizations or symbolic execution, hopefully leading to new state-of-the-art discoveries.
+
+Although LES is an effective prover, several direction for future studies remain. 
+Extending it with conditional and inductive reasoning using colored e-graphs could significantly improve its ability.
+Also, due to it's interactive design, LES has the potential to serve as a deductive reasoning framework for agents, whether human or artificial, that would direct difficult to automate procedures such as case splitting, induction, and existential variables instantiation.
+
+\section{Closing Remarks}
+
+The work presented in this thesis address key challenges in theory exploration, conditional reasoning, and integration with interactive theorem provers, and have opened new avenues for research in automated reasoning.
+
+The three components presented, TheSy, colored e-graphs, and LES, synergize to create a thorough approach to improving the applicability of automatic deductive reasoning.
+TheSy's ability to efficiently discover new lemmas provides a richer knowledge base, which LES can leverage to handle complex reasoning scenarios.
+Also, colored e-graphs for conditional reasoning can potentially imporve theory exploration systems and theorem provers based on equality saturation. 
+These innovations form a potent toolkit that addresses key challenges in automated reasoning.
+
+We hope these insights and innovations will further advance automatic deductive reasoning, bringing creating effective and autonomous reasoning agents that will help in a wide range of domains.
